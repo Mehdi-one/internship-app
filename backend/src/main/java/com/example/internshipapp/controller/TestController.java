@@ -1,8 +1,9 @@
 package com.example.internshipapp.controller;
 
-import java.security.Principal;
 import java.util.Map;
 
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,9 +18,9 @@ public class TestController {
     }
 
     @GetMapping("/private")
-    public Map<String, String> privateEndpoint(Principal principal) {
+    public Map<String, String> privateEndpoint(@AuthenticationPrincipal Jwt jwt) {
         return Map.of(
                 "message", "Protected endpoint is working",
-                "user", principal.getName());
+                "user", jwt.getClaimAsString("preferred_username"));
     }
 }

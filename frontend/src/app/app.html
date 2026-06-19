@@ -1,14 +1,50 @@
 <main class="app-shell">
   <section class="content">
     <h1>Internship App</h1>
-    <p>Initial empty project structure.</p>
+    <p>Authentication test page</p>
 
-    <ul>
-      <li>Angular frontend</li>
-      <li>Spring Boot REST API</li>
-      <li>PostgreSQL database</li>
-      <li>Keycloak authentication</li>
-    </ul>
+    <div class="panel">
+      <h2>Test steps</h2>
+      <ol>
+        <li>Make sure Docker is running Keycloak and PostgreSQL.</li>
+        <li>Make sure Spring Boot is running on port 8081.</li>
+        <li>Click Login and use test / test.</li>
+        <li>Click Call private API.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h2>Login status</h2>
+      @if (isAuthenticated) {
+        <p class="success">Logged in as: {{ userName || 'test' }}</p>
+      } @else {
+        <p class="warning">Not logged in yet</p>
+      }
+    </div>
+
+    <div class="actions">
+      @if (!isAuthenticated) {
+        <button type="button" (click)="login()">1. Login with Keycloak</button>
+      } @else {
+        <button type="button" (click)="logout()">Logout</button>
+      }
+      <button type="button" (click)="callPublicApi()">2. Test public API</button>
+      <button type="button" (click)="callPrivateApi()" [disabled]="!isAuthenticated">
+        3. Test private API
+      </button>
+    </div>
+
+    <div class="results">
+      <div>
+        <h2>Public API result</h2>
+        <p>{{ publicApiResponse || 'Not tested yet' }}</p>
+      </div>
+
+      <div>
+        <h2>Private API result</h2>
+        <p>{{ privateApiResponse || 'Not tested yet' }}</p>
+      </div>
+    </div>
   </section>
 </main>
 
