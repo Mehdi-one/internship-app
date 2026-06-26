@@ -1,0 +1,92 @@
+<section class="page-header">
+  <div>
+    <h1>Salaries</h1>
+    <p>Gerer les salaries et leur cout horaire charge.</p>
+  </div>
+  <a routerLink="/employees/new" class="button-link">Nouveau salarie</a>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<section class="panel filter-panel">
+  <div class="section-heading compact-heading">
+    <div>
+      <h2>Filtres</h2>
+      <p>Rechercher par matricule, nom ou qualification.</p>
+    </div>
+  </div>
+
+  <div class="form-grid">
+  <label>
+    Recherche
+    <input name="search" placeholder="Matricule, nom, qualification..." [(ngModel)]="filters.search" />
+  </label>
+
+  <label>
+    Statut
+    <select name="status" [(ngModel)]="filters.status">
+      <option value="">Tous les statuts</option>
+      @for (status of statuses; track status) {
+        <option [value]="status">{{ status | labelFr }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="button" (click)="loadEmployees()">Appliquer les filtres</button>
+  </div>
+  </div>
+</section>
+
+@if (employees.length > 0) {
+  <section class="table-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Liste des salaries</h2>
+        <p>{{ employees.length }} salarie(s) affiche(s)</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Matricule</th>
+          <th>Nom complet</th>
+          <th>Qualification</th>
+          <th>Contrat</th>
+          <th>Cout horaire</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (employee of employees; track employee.id) {
+          <tr>
+            <td>{{ employee.registrationNumber }}</td>
+            <td>{{ employee.fullName }}</td>
+            <td>{{ employee.qualification }}</td>
+            <td>{{ employee.contractType | labelFr }}</td>
+            <td class="money">{{ employee.hourlyCost }} DHS/h</td>
+            <td><span class="status-badge status-{{ employee.status.toLowerCase() }}">{{ employee.status | labelFr }}</span></td>
+            <td>
+              <div class="form-actions">
+                <a [routerLink]="['/employees', employee.id, 'edit']" class="button-link secondary">Modifier</a>
+                <button class="secondary-button" type="button" (click)="deactivateEmployee(employee.id)" [disabled]="employee.status === 'INACTIVE'">
+                  Desactiver
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+} @else if (!message) {
+  <section class="empty-state">
+    <h2>Aucun salarie trouve</h2>
+    <p>Creer le premier salarie ou modifier les filtres.</p>
+    <a routerLink="/employees/new" class="button-link">Creer un salarie</a>
+  </section>
+}

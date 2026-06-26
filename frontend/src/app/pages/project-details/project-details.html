@@ -1,0 +1,217 @@
+<section class="page-header">
+  <div>
+    <h1>{{ project?.reference || 'Detail du marche' }}</h1>
+    <p>{{ project?.title || 'Chargement des informations du marche' }}</p>
+  </div>
+  <div class="form-actions">
+    <a routerLink="/projects" class="button-link secondary">Retour</a>
+    @if (project) {
+      <a [routerLink]="['/projects', project.id, 'edit']" class="button-link">Modifier le marche</a>
+    }
+  </div>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+@if (isLoading) {
+  <section class="panel">
+    <p>Chargement du marche {{ projectId }}...</p>
+  </section>
+}
+
+@if (!isLoading && !project && projectId) {
+  <section class="panel">
+    <p>Aucune donnee disponible pour le marche {{ projectId }}.</p>
+    <button type="button" (click)="loadProject()">Reessayer</button>
+  </section>
+}
+
+@if (project) {
+  <section class="panel details-grid">
+    <div>
+      <strong>Maitre d'ouvrage</strong>
+      <span>{{ project.clientName || '-' }}</span>
+    </div>
+    <div>
+      <strong>Type de marche</strong>
+      <span>{{ project.projectType | labelFr }}</span>
+    </div>
+    <div>
+      <strong>Statut</strong>
+      <span class="status-badge status-{{ project.status.toLowerCase().replace('_', '-') }}">{{ project.status | labelFr }}</span>
+    </div>
+    <div>
+      <strong>Archive</strong>
+      <span class="status-badge status-{{ project.archived ? 'archived' : 'active' }}">{{ project.archived ? 'Archive' : 'Non archive' }}</span>
+    </div>
+    <div>
+      <strong>Taux TVA</strong>
+      <span>{{ project.tvaRate ?? '-' }}%</span>
+    </div>
+    <div>
+      <strong>Responsable</strong>
+      <span>{{ project.responsibleName || '-' }}</span>
+    </div>
+    <div>
+      <strong>Date debut</strong>
+      <span>{{ project.startDate || '-' }}</span>
+    </div>
+    <div>
+      <strong>Date fin</strong>
+      <span>{{ project.endDate || '-' }}</span>
+    </div>
+    <div>
+      <strong>Delai d'execution</strong>
+      <span>{{ project.executionDelayDays || '-' }} jours</span>
+    </div>
+    <div class="form-actions full-row">
+      <button type="button" (click)="closeProject()" [disabled]="project.status === 'CLOSED' || project.archived">Cloturer le marche</button>
+      <button class="secondary-button" type="button" (click)="archiveProject()" [disabled]="project.archived">Archiver le marche</button>
+    </div>
+  </section>
+
+  <app-project-summary [summary]="summary"></app-project-summary>
+
+  <section class="panel">
+    <h2>Lots / postes du marche</h2>
+
+    <form #lotForm="ngForm" class="form-grid" novalidate (ngSubmit)="addLot(lotForm)">
+      <label [class.invalid]="lotForm.submitted && designation.invalid">
+        Designation <span class="required-marker">*</span>
+        <input #designation="ngModel" name="designation" required [(ngModel)]="lot.designation" />
+        @if (lotForm.submitted && designation.invalid) {
+          <span class="field-error">La designation est obligatoire.</span>
+        }
+      </label>
+
+      <label>
+        Quantite
+        <input name="quantity" type="number" min="0" step="0.01" [(ngModel)]="lot.quantity" />
+      </label>
+
+      <label>
+        Prix unitaire
+        <input name="unitPrice" type="number" min="0" step="0.01" [(ngModel)]="lot.unitPrice" />
+      </label>
+
+      <label [class.invalid]="lotForm.submitted && plannedAmount.invalid">
+        Montant prevu <span class="required-marker">*</span>
+        <input #plannedAmount="ngModel" name="plannedAmount" type="number" min="0.01" step="0.01" required [(ngModel)]="lot.plannedAmount" />
+        @if (lotForm.submitted && plannedAmount.invalid) {
+          <span class="field-error">Le montant prevu doit etre superieur a 0.</span>
+        }
+      </label>
+
+      <div class="form-actions full-row">
+        <button type="submit">Ajouter lot/poste</button>
+      </div>
+    </form>
+
+    @if (lots.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Designation</th>
+            <th>Quantite</th>
+            <th>Prix unitaire</th>
+            <th>Montant prevu</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (lotItem of lots; track lotItem.id) {
+            <tr>
+              <td>{{ lotItem.designation }}</td>
+              <td class="money">{{ lotItem.quantity ?? '-' }}</td>
+              <td class="money">{{ lotItem.unitPrice ?? '-' }} DHS</td>
+              <td class="money">{{ lotItem.plannedAmount }} DHS</td>
+              <td><span class="status-badge status-{{ lotItem.archived ? 'archived' : 'active' }}">{{ lotItem.archived ? 'Archive' : 'Non archive' }}</span></td>
+              <td>
+                <button class="secondary-button" type="button" (click)="archiveLot(lotItem.id)" [disabled]="lotItem.archived">
+                  Archiver
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>Aucun lot/poste pour le moment.</p>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>Ajouter une depense</h2>
+    <app-expense-form
+      [projectLots]="lots"
+      submitLabel="Ajouter la depense"
+      (expenseCreated)="addExpense($event)">
+    </app-expense-form>
+  </section>
+
+  @if (editingExpense) {
+    <section class="panel">
+      <div class="section-title-row">
+        <h2>Modifier la depense</h2>
+        <button class="secondary-button" type="button" (click)="cancelEditExpense()">Annuler la modification</button>
+      </div>
+      <app-expense-form
+        [projectLots]="lots"
+        [initialExpense]="editingExpense"
+        submitLabel="Enregistrer la depense"
+        (expenseCreated)="updateExpense($event)">
+      </app-expense-form>
+    </section>
+  }
+
+  <section class="panel">
+    <h2>Depenses</h2>
+
+    @if (expenses.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Lot / poste</th>
+            <th>Categorie</th>
+            <th>Description</th>
+            <th>Montant HT</th>
+            <th>TVA</th>
+            <th>Fournisseur</th>
+            <th>Facture</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (expense of expenses; track expense.id) {
+            <tr>
+              <td>{{ expense.expenseDate || '-' }}</td>
+              <td>{{ expense.projectLotDesignation || '-' }}</td>
+              <td>{{ expense.category | labelFr }}</td>
+              <td>{{ expense.description || '-' }}</td>
+              <td class="money">{{ expense.amountHT }} DHS</td>
+              <td>{{ expense.tvaRate ?? '-' }}%</td>
+              <td>{{ expense.supplierName || '-' }}</td>
+              <td>{{ expense.invoiceNumber || '-' }}</td>
+              <td><span class="status-badge status-{{ expense.status.toLowerCase() }}">{{ expense.status | labelFr }}</span></td>
+              <td>
+                <button class="secondary-button" type="button" (click)="startEditExpense(expense)" [disabled]="expense.status === 'CANCELLED'">
+                  Modifier
+                </button>
+                <button class="secondary-button" type="button" (click)="cancelExpense(expense.id)" [disabled]="expense.status === 'CANCELLED'">
+                  Annuler
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>Aucune depense pour le moment.</p>
+    }
+  </section>
+}

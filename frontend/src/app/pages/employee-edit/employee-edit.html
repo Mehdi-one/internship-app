@@ -1,0 +1,68 @@
+<section class="page-header">
+  <div>
+    <h1>Modifier le salarie</h1>
+    <p>Mettre a jour les informations du salarie et son cout horaire charge.</p>
+  </div>
+  <a routerLink="/employees" class="button-link secondary">Retour</a>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<form #employeeForm="ngForm" class="panel form-grid" novalidate (ngSubmit)="submit(employeeForm)">
+  <label [class.invalid]="employeeForm.submitted && registrationNumber.invalid">
+    Matricule <span class="required-marker">*</span>
+    <input #registrationNumber="ngModel" name="registrationNumber" required [(ngModel)]="employee.registrationNumber" />
+    @if (employeeForm.submitted && registrationNumber.invalid) {
+      <span class="field-error">Le matricule est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && fullName.invalid">
+    Nom complet <span class="required-marker">*</span>
+    <input #fullName="ngModel" name="fullName" required [(ngModel)]="employee.fullName" />
+    @if (employeeForm.submitted && fullName.invalid) {
+      <span class="field-error">Le nom est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && qualification.invalid">
+    Fonction / qualification <span class="required-marker">*</span>
+    <input #qualification="ngModel" name="qualification" required [(ngModel)]="employee.qualification" />
+    @if (employeeForm.submitted && qualification.invalid) {
+      <span class="field-error">La qualification est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Type de contrat <span class="required-marker">*</span>
+    <select name="contractType" required [(ngModel)]="employee.contractType">
+      <option value="CDI">CDI</option>
+      <option value="CDD">CDD</option>
+      <option value="INTERIM">Interim</option>
+      <option value="FREELANCE">Freelance</option>
+      <option value="OTHER">Autre</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && hourlyCost.invalid">
+    Cout horaire charge <span class="required-marker">*</span>
+    <input #hourlyCost="ngModel" name="hourlyCost" type="number" min="0.01" step="0.01" required [(ngModel)]="employee.hourlyCost" />
+    @if (employeeForm.submitted && hourlyCost.invalid) {
+      <span class="field-error">Le cout horaire doit etre superieur a 0.</span>
+    }
+  </label>
+
+  <label>
+    Statut
+    <select name="status" [(ngModel)]="employee.status">
+      <option value="ACTIVE">Actif</option>
+      <option value="INACTIVE">Inactif</option>
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="submit">Enregistrer le salarie</button>
+  </div>
+</form>

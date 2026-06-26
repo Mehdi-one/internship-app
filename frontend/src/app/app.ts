@@ -1,22 +1,21 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   private readonly oidcSecurityService = inject(OidcSecurityService);
-  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   isAuthenticated = false;
   userName = '';
-  publicApiResponse = '';
-  privateApiResponse = '';
+  pageTitle = 'Tableau de bord';
 
   constructor() {
     this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
@@ -25,6 +24,10 @@ export class App {
 
     this.oidcSecurityService.userData$.subscribe(({ userData }) => {
       this.userName = userData?.preferred_username ?? '';
+    });
+
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
+      this.pageTitle = this.resolvePageTitle(event.urlAfterRedirects);
     });
   }
 
@@ -36,47 +39,15 @@ export class App {
     this.oidcSecurityService.logoffLocal();
     this.isAuthenticated = false;
     this.userName = '';
-    this.publicApiResponse = '';
-    this.privateApiResponse = '';
   }
 
-  callPublicApi() {
-    this.http.get<{ message: string }>('http://localhost:8081/api/public').subscribe({
-      next: (response) => {
-        this.publicApiResponse = response.message;
-      },
-      error: () => {
-        this.publicApiResponse = 'Public API failed. Check if Spring Boot is running on port 8081.';
-      },
-    });
-  }
-
-  callPrivateApi() {
-    if (!this.isAuthenticated) {
-      this.privateApiResponse = 'Login first, then try the private API.';
-      return;
-    }
-
-    this.oidcSecurityService.getAccessToken().subscribe((token) => {
-      if (!token) {
-        this.privateApiResponse = 'No token found. Login again.';
-        return;
-      }
-
-      const headers = new HttpHeaders({
-        Authorization: `Bearer ${token}`,
-      });
-
-      this.http
-        .get<{ message: string; user: string }>('http://localhost:8081/api/private', { headers })
-        .subscribe({
-          next: (response) => {
-            this.privateApiResponse = `${response.message} - user: ${response.user}`;
-          },
-          error: () => {
-            this.privateApiResponse = 'Private API failed. Check backend, Keycloak, or login token.';
-          },
-        });
-    });
+  private resolvePageTitle(url: string) {
+    if (url.startsWith('/projects/new')) return 'Nouveau marche';
+    if (url.startsWith('/projects')) return 'Marches';
+    if (url.startsWith('/employees/new')) return 'Nouveau salarie';
+    if (url.startsWith('/employees')) return 'Salaries';
+    if (url.startsWith('/equipment/new')) return 'Nouveau materiel';
+    if (url.startsWith('/equipment')) return 'Materiel';
+    return 'Tableau de bord';
   }
 }

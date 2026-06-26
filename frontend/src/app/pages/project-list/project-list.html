@@ -1,0 +1,89 @@
+<section class="page-header">
+  <div>
+    <h1>Marches</h1>
+    <p>Gerer les marches et suivre les premiers indicateurs financiers.</p>
+  </div>
+  <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<section class="panel filter-panel">
+  <div class="section-heading compact-heading">
+    <div>
+      <h2>Filtres</h2>
+      <p>Rechercher par reference, titre, maitre d'ouvrage ou responsable.</p>
+    </div>
+  </div>
+
+  <div class="form-grid">
+  <label>
+    Recherche
+    <input name="search" placeholder="Reference, titre, maitre d'ouvrage, responsable..." [(ngModel)]="filters.search" />
+  </label>
+
+  <label>
+    Statut
+    <select name="status" [(ngModel)]="filters.status">
+      <option value="">Tous les statuts</option>
+      @for (status of statuses; track status) {
+        <option [value]="status">{{ status | labelFr }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="button" (click)="loadProjects()">Appliquer les filtres</button>
+  </div>
+  </div>
+</section>
+
+@if (projects.length > 0) {
+  <section class="table-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Liste des marches</h2>
+        <p>{{ projects.length }} marche(s) affiche(s)</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Titre</th>
+          <th>Maitre d'ouvrage</th>
+          <th>Type</th>
+          <th>Responsable</th>
+          <th>Montant HT</th>
+          <th>Budget</th>
+          <th>Statut</th>
+          <th>Archive</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (project of projects; track project.id) {
+          <tr>
+            <td><a class="table-link" [routerLink]="['/projects', project.id]">{{ project.reference }}</a></td>
+            <td>{{ project.title }}</td>
+            <td>{{ project.clientName || '-' }}</td>
+            <td>{{ project.projectType | labelFr }}</td>
+            <td>{{ project.responsibleName || '-' }}</td>
+            <td class="money">{{ project.amountHT }} DHS</td>
+            <td class="money">{{ project.estimatedBudget }} DHS</td>
+            <td><span class="status-badge status-{{ project.status.toLowerCase().replace('_', '-') }}">{{ project.status | labelFr }}</span></td>
+            <td><span class="status-badge status-{{ project.archived ? 'archived' : 'active' }}">{{ project.archived ? 'Archive' : 'Non archive' }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+} @else if (!message) {
+  <section class="empty-state">
+    <h2>Aucun marche trouve</h2>
+    <p>Creer le premier marche ou modifier les filtres.</p>
+    <a routerLink="/projects/new" class="button-link">Creer un marche</a>
+  </section>
+}

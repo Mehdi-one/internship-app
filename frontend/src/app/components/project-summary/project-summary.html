@@ -1,0 +1,34 @@
+<section class="panel">
+  <h2>Synthese financiere</h2>
+
+  @if (summary) {
+    <dl class="summary-grid">
+      <div>
+        <dt>Montant HT</dt>
+        <dd class="money">{{ summary.amountHT }} DHS</dd>
+      </div>
+      <div>
+        <dt>Budget estime</dt>
+        <dd class="money">{{ summary.estimatedBudget }} DHS</dd>
+      </div>
+      <div>
+        <dt>Total des depenses</dt>
+        <dd class="money">{{ summary.totalExpenses }} DHS</dd>
+      </div>
+      <div>
+        <dt>Marge</dt>
+        <dd class="money">{{ summary.margin }} DHS</dd>
+      </div>
+      <div>
+        <dt>Taux de marge</dt>
+        <dd>{{ summary.marginRate }}%</dd>
+      </div>
+      <div>
+        <dt>Consommation du budget</dt>
+        <dd>{{ summary.budgetConsumptionRate }}%</dd>
+      </div>
+    </dl>
+  } @else {
+    <p>Aucune synthese chargee.</p>
+  }
+</section>

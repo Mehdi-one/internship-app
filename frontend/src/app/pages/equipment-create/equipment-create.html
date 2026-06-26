@@ -1,0 +1,90 @@
+<section class="page-header">
+  <div>
+    <h1>Nouveau materiel</h1>
+    <p>Ajouter un vehicule, engin, machine ou outil avec son cout d'utilisation.</p>
+  </div>
+  <a routerLink="/equipment" class="button-link secondary">Retour</a>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<form #equipmentForm="ngForm" class="panel form-grid" novalidate (ngSubmit)="submit(equipmentForm)">
+  <label [class.invalid]="equipmentForm.submitted && reference.invalid">
+    Reference / immatriculation <span class="required-marker">*</span>
+    <input #reference="ngModel" name="reference" required [(ngModel)]="equipment.reference" />
+    @if (equipmentForm.submitted && reference.invalid) {
+      <span class="field-error">La reference est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Type <span class="required-marker">*</span>
+    <select name="type" required [(ngModel)]="equipment.type">
+      <option value="TRUCK">Camion</option>
+      <option value="EARTHMOVING_MACHINE">Engin de chantier</option>
+      <option value="LIGHT_VEHICLE">Vehicule leger</option>
+      <option value="TOOL">Outil</option>
+      <option value="OTHER">Autre</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="equipmentForm.submitted && brandModel.invalid">
+    Marque / modele <span class="required-marker">*</span>
+    <input #brandModel="ngModel" name="brandModel" required [(ngModel)]="equipment.brandModel" />
+    @if (equipmentForm.submitted && brandModel.invalid) {
+      <span class="field-error">La marque / modele est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Cout d'acquisition
+    <input name="acquisitionCost" type="number" min="0" step="0.01" [(ngModel)]="equipment.acquisitionCost" />
+  </label>
+
+  <label>
+    Type de cout d'utilisation <span class="required-marker">*</span>
+    <select name="usageCostType" required [(ngModel)]="equipment.usageCostType">
+      <option value="HOURLY">Horaire</option>
+      <option value="DAILY">Journalier</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="equipmentForm.submitted && usageCost.invalid">
+    Cout d'utilisation <span class="required-marker">*</span>
+    <input #usageCost="ngModel" name="usageCost" type="number" min="0.01" step="0.01" required [(ngModel)]="equipment.usageCost" />
+    @if (equipmentForm.submitted && usageCost.invalid) {
+      <span class="field-error">Le cout d'utilisation doit etre superieur a 0.</span>
+    }
+  </label>
+
+  <label>
+    Consommation carburant
+    <input name="fuelConsumption" type="number" min="0" step="0.01" [(ngModel)]="equipment.fuelConsumption" />
+  </label>
+
+  <label>
+    Cout maintenance
+    <input name="maintenanceCost" type="number" min="0" step="0.01" [(ngModel)]="equipment.maintenanceCost" />
+  </label>
+
+  <label>
+    Cout assurance
+    <input name="insuranceCost" type="number" min="0" step="0.01" [(ngModel)]="equipment.insuranceCost" />
+  </label>
+
+  <label>
+    Statut
+    <select name="status" [(ngModel)]="equipment.status">
+      <option value="AVAILABLE">Disponible</option>
+      <option value="ASSIGNED">Affecte</option>
+      <option value="MAINTENANCE">Maintenance</option>
+      <option value="REFORMED">Reforme</option>
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="submit">Creer le materiel</button>
+  </div>
+</form>

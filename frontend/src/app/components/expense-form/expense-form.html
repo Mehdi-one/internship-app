@@ -1,0 +1,79 @@
+<form #expenseForm="ngForm" class="form-grid" novalidate (ngSubmit)="submit(expenseForm)">
+  <label>
+    Lot / poste
+    <select name="projectLotId" [(ngModel)]="expense.projectLotId">
+      <option value="">Sans lot/poste</option>
+      @for (lot of activeLots; track lot.id) {
+        <option [value]="lot.id">{{ lot.designation }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Categorie <span class="required-marker">*</span>
+    <select name="category" required [(ngModel)]="expense.category">
+      <option value="MATERIALS">Materiaux</option>
+      <option value="SUBCONTRACTING">Sous-traitance</option>
+      <option value="EXTERNAL_RENTAL">Location externe</option>
+      <option value="SITE_FEES">Frais de chantier</option>
+      <option value="GENERAL_FEES">Frais generaux</option>
+      <option value="OTHER">Autre</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="expenseForm.submitted && amountHT.invalid">
+    Montant HT <span class="required-marker">*</span>
+    <input #amountHT="ngModel" name="amountHT" type="number" min="0.01" step="0.01" required [(ngModel)]="expense.amountHT" />
+    @if (expenseForm.submitted && amountHT.invalid) {
+      <span class="field-error">Le montant HT doit etre superieur a 0.</span>
+    }
+  </label>
+
+  <label [class.invalid]="expenseForm.submitted && tvaRate.invalid">
+    Taux TVA <span class="required-marker">*</span>
+    <select #tvaRate="ngModel" name="tvaRate" required [(ngModel)]="expense.tvaRate">
+      <option value="0">0%</option>
+      <option value="7">7%</option>
+      <option value="10">10%</option>
+      <option value="14">14%</option>
+      <option value="20">20%</option>
+    </select>
+    @if (expenseForm.submitted && tvaRate.invalid) {
+      <span class="field-error">Le taux TVA est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Fournisseur
+    <input name="supplierName" [(ngModel)]="expense.supplierName" />
+  </label>
+
+  <label>
+    Numero de facture
+    <input name="invoiceNumber" [(ngModel)]="expense.invoiceNumber" />
+  </label>
+
+  <label>
+    Date de depense
+    <input name="expenseDate" type="date" [(ngModel)]="expense.expenseDate" />
+  </label>
+
+  <label>
+    Statut <span class="required-marker">*</span>
+    <select name="status" required [(ngModel)]="expense.status">
+      <option value="COMMITTED">Engagee</option>
+      <option value="INVOICED">Facturee</option>
+      <option value="PAID">Payee</option>
+      <option value="CANCELLED">Annulee</option>
+    </select>
+  </label>
+
+  <label class="full-row">
+    Description
+    <textarea name="description" rows="3" [(ngModel)]="expense.description"></textarea>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="submit">{{ submitLabel }}</button>
+  </div>
+</form>

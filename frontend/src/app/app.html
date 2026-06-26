@@ -1,51 +1,122 @@
-<main class="app-shell">
-  <section class="content">
-    <h1>Internship App</h1>
-    <p>Authentication test page</p>
-
-    <div class="panel">
-      <h2>Test steps</h2>
-      <ol>
-        <li>Make sure Docker is running Keycloak and PostgreSQL.</li>
-        <li>Make sure Spring Boot is running on port 8081.</li>
-        <li>Click Login and use test / test.</li>
-        <li>Click Call private API.</li>
-      </ol>
+<main class="dashboard-shell">
+  <aside class="sidebar">
+    <div class="brand-block">
+      <span class="brand-mark">IA</span>
+      <div>
+        <h1>Internship App</h1>
+        <p>Gestion des depenses de chantiers</p>
+      </div>
     </div>
 
-    <div class="panel">
-      <h2>Login status</h2>
+    <nav class="sidebar-nav" aria-label="Navigation principale">
+      <a class="nav-primary" routerLink="/dashboard" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 10.5 12 4l8 6.5" />
+            <path d="M6.5 10v9h11v-9" />
+            <path d="M10 19v-5h4v5" />
+          </svg>
+        </span>
+        Tableau de bord
+      </a>
+
+      <span class="nav-section">Marches</span>
+      <a class="nav-primary" routerLink="/projects" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7.5h6l1.5 2H20v9.5H4z" />
+            <path d="M4 7.5V5h5l1.5 2.5" />
+          </svg>
+        </span>
+        Tous les marches
+      </a>
+      <a class="nav-sub" routerLink="/projects/new" routerLinkActive="active-link">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </span>
+        Nouveau marche
+      </a>
+
+      <span class="nav-section">Ressources</span>
+      <a class="nav-primary" routerLink="/employees" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+          </svg>
+        </span>
+        Salaries
+      </a>
+      <a class="nav-sub" routerLink="/employees/new" routerLinkActive="active-link">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </span>
+        Nouveau salarie
+      </a>
+
+      <a class="nav-primary" routerLink="/equipment" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 16h14" />
+            <path d="M7 16l1.5-7h7L17 16" />
+            <path d="M8 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+            <path d="M16 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+          </svg>
+        </span>
+        Materiel
+      </a>
+      <a class="nav-sub" routerLink="/equipment/new" routerLinkActive="active-link">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </span>
+        Nouveau materiel
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="user-avatar">{{ (userName || 'T').charAt(0).toUpperCase() }}</span>
+      <div>
+        <span class="eyebrow">Utilisateur</span>
+        <p>{{ isAuthenticated ? (userName || 'test') : 'Non connecte' }}</p>
+      </div>
+    </div>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar">
+      <h2>{{ pageTitle }}</h2>
+
+      <div class="auth-strip">
+        <span class="live-badge">En ligne</span>
+        <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+
+        @if (!isAuthenticated) {
+          <button class="secondary-button" type="button" (click)="login()">Connexion</button>
+        } @else {
+          <button class="secondary-button" type="button" (click)="logout()">Deconnexion</button>
+        }
+      </div>
+    </header>
+
+    <section class="workspace-content">
       @if (isAuthenticated) {
-        <p class="success">Logged in as: {{ userName || 'test' }}</p>
+        <router-outlet />
       } @else {
-        <p class="warning">Not logged in yet</p>
+        <section class="empty-state">
+          <h2>Espace de suivi des marches</h2>
+          <p>Connectez-vous pour gerer les marches, les depenses et les marges.</p>
+          <button type="button" (click)="login()">Connexion avec Keycloak</button>
+        </section>
       }
-    </div>
-
-    <div class="actions">
-      @if (!isAuthenticated) {
-        <button type="button" (click)="login()">1. Login with Keycloak</button>
-      } @else {
-        <button type="button" (click)="logout()">Logout</button>
-      }
-      <button type="button" (click)="callPublicApi()">2. Test public API</button>
-      <button type="button" (click)="callPrivateApi()" [disabled]="!isAuthenticated">
-        3. Test private API
-      </button>
-    </div>
-
-    <div class="results">
-      <div>
-        <h2>Public API result</h2>
-        <p>{{ publicApiResponse || 'Not tested yet' }}</p>
-      </div>
-
-      <div>
-        <h2>Private API result</h2>
-        <p>{{ privateApiResponse || 'Not tested yet' }}</p>
-      </div>
-    </div>
+    </section>
   </section>
 </main>
-
-<router-outlet />

@@ -1,0 +1,114 @@
+<section class="page-header">
+  <div>
+    <h1>Nouveau marche</h1>
+    <p>Ajouter les premieres informations du chantier ou marche.</p>
+  </div>
+  <a routerLink="/projects" class="button-link secondary">Retour</a>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<form #projectForm="ngForm" class="panel form-grid" novalidate (ngSubmit)="submit(projectForm)">
+  <label [class.invalid]="projectForm.submitted && reference.invalid">
+    Reference <span class="required-marker">*</span>
+    <input #reference="ngModel" name="reference" required [(ngModel)]="project.reference" />
+    @if (projectForm.submitted && reference.invalid) {
+      <span class="field-error">La reference est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && title.invalid">
+    Titre <span class="required-marker">*</span>
+    <input #title="ngModel" name="title" required [(ngModel)]="project.title" />
+    @if (projectForm.submitted && title.invalid) {
+      <span class="field-error">Le titre est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Maitre d'ouvrage <span class="required-marker">*</span>
+    <input #clientName="ngModel" name="clientName" required [(ngModel)]="project.clientName" />
+    @if (projectForm.submitted && clientName.invalid) {
+      <span class="field-error">Le maitre d'ouvrage est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Type de marche <span class="required-marker">*</span>
+    <select name="projectType" required [(ngModel)]="project.projectType">
+      <option value="WORKS">Travaux</option>
+      <option value="SUPPLIES">Fournitures</option>
+      <option value="SERVICES">Services</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && amountHT.invalid">
+    Montant HT <span class="required-marker">*</span>
+    <input #amountHT="ngModel" name="amountHT" type="number" min="0.01" step="0.01" required [(ngModel)]="project.amountHT" />
+    @if (projectForm.submitted && amountHT.invalid) {
+      <span class="field-error">Le montant HT doit etre superieur a 0.</span>
+    }
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && tvaRate.invalid">
+    Taux TVA <span class="required-marker">*</span>
+    <select #tvaRate="ngModel" name="tvaRate" required [(ngModel)]="project.tvaRate">
+      <option value="0">0%</option>
+      <option value="7">7%</option>
+      <option value="10">10%</option>
+      <option value="14">14%</option>
+      <option value="20">20%</option>
+    </select>
+    @if (projectForm.submitted && tvaRate.invalid) {
+      <span class="field-error">Le taux TVA est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && estimatedBudget.invalid">
+    Budget estime <span class="required-marker">*</span>
+    <input #estimatedBudget="ngModel" name="estimatedBudget" type="number" min="0.01" step="0.01" required [(ngModel)]="project.estimatedBudget" />
+    @if (projectForm.submitted && estimatedBudget.invalid) {
+      <span class="field-error">Le budget estime doit etre superieur a 0.</span>
+    }
+  </label>
+
+  <label>
+    Date debut
+    <input name="startDate" type="date" [(ngModel)]="project.startDate" />
+  </label>
+
+  <label>
+    Date fin
+    <input name="endDate" type="date" [(ngModel)]="project.endDate" />
+  </label>
+
+  <label>
+    Delai d'execution (jours)
+    <input name="executionDelayDays" type="number" min="1" [(ngModel)]="project.executionDelayDays" />
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && responsibleName.invalid">
+    Responsable <span class="required-marker">*</span>
+    <input #responsibleName="ngModel" name="responsibleName" required [(ngModel)]="project.responsibleName" />
+    @if (projectForm.submitted && responsibleName.invalid) {
+      <span class="field-error">Le responsable est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Statut
+    <select name="status" [(ngModel)]="project.status">
+      <option value="PROSPECT">Prospect</option>
+      <option value="IN_PROGRESS">En cours</option>
+      <option value="SUSPENDED">Suspendu</option>
+      <option value="DELIVERED">Livre</option>
+      <option value="CLOSED">Cloture</option>
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="submit">Creer le marche</button>
+  </div>
+</form>

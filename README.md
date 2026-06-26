@@ -1,117 +1,47 @@
 # Internship App
 
-Ce projet est une premiere structure vide pour mon stage.
+Application web de stage pour la gestion des marches, des depenses et des ressources d'une entreprise de chantier.
 
-Le but pour le moment est de preparer une base avec :
+## Objectif
 
-- Angular pour le frontend
-- Spring Boot pour le backend
+L'objectif actuel est de mettre en place une base technique propre avant de continuer les prochaines fonctionnalites du cahier des charges.
+
+## Technologies utilisees
+
+- Angular pour l'interface utilisateur
+- Spring Boot pour le backend REST API
 - PostgreSQL pour la base de donnees
 - Keycloak pour l'authentification
+- Docker Compose pour les services externes
 
-La logique generale est :
+## Avancement actuel
 
-```text
-Angular -> Spring Boot API -> PostgreSQL
-             |
-          Keycloak
-```
+La base de l'application est mise en place avec une interface dashboard en francais.
 
-## Structure du projet
+Modules realises :
 
-```text
-internship-app/
-|-- frontend/
-|-- backend/
-|-- docker-compose.yml
-`-- README.md
-```
+- Tableau de bord
+- Marches
+- Lots / postes de marche
+- Depenses
+- Salaries
+- Parc auto / materiel
+- Authentification avec Keycloak
 
-## Frontend
+Fonctionnalites principales :
 
-Le dossier `frontend` contient l'application Angular.
+- creation, modification, cloture et archivage des marches
+- ajout et annulation des depenses
+- suivi simple des budgets, depenses et marges
+- gestion de base des salaries
+- gestion de base du materiel
+- affichage des indicateurs principaux dans le tableau de bord
 
-Pour lancer le frontend :
+## Remarque
 
-```powershell
-cd C:\internship-app\frontend
-npm install
-ng serve
-```
+Le projet est encore en phase MVP.
+Les modules actuels servent a valider la structure technique et les premieres regles metier avant d'ajouter les traitements plus avances du cahier des charges.
 
-Adresse :
+---
 
-```text
-http://localhost:4200
-```
-
-## Backend
-
-Le dossier `backend` contient l'application Spring Boot.
-
-Pour lancer le backend :
-
-```powershell
-cd C:\internship-app\backend
-mvn spring-boot:run
-```
-
-Endpoint de test :
-
-```text
-http://localhost:8081/api/public
-```
-
-## Docker
-
-Le fichier `docker-compose.yml` sert a lancer les services externes :
-
-- PostgreSQL
-- Keycloak
-
-Commande :
-
-```powershell
-cd C:\internship-app
-docker compose up -d
-```
-
-Pour arreter :
-
-```powershell
-docker compose down
-```
-
-## Ports utilises
-
-```text
-Angular:     4200
-Spring Boot: 8081
-Keycloak:    8080
-PostgreSQL:  5432
-```
-
-## Keycloak
-
-Keycloak sera utilise pour gerer la connexion des utilisateurs.
-
-Compte admin local :
-
-```text
-username: admin
-password: admin
-```
-
-Realm a creer :
-
-```text
-internship-app
-```
-
-Client a creer :
-
-```text
-angular-client
-```
-
-
+Realise par Mehdi Hajjari
