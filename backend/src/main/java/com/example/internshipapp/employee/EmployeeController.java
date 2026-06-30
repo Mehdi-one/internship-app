@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.internshipapp.common.enums.EmployeeStatus;
+import com.example.internshipapp.employee.dto.EmployeeCostHistoryResponse;
+import com.example.internshipapp.employee.dto.EmployeeDetailResponse;
 import com.example.internshipapp.employee.dto.EmployeeRequest;
 import com.example.internshipapp.employee.dto.EmployeeResponse;
 
@@ -28,11 +30,6 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
-    @PostMapping
-    public EmployeeResponse create(@Valid @RequestBody EmployeeRequest request) {
-        return employeeService.create(request);
-    }
-
     @GetMapping
     public List<EmployeeResponse> findAll(
             @RequestParam(required = false) String search,
@@ -41,8 +38,13 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    public EmployeeResponse findById(@PathVariable Long id) {
+    public EmployeeDetailResponse findById(@PathVariable Long id) {
         return employeeService.findById(id);
+    }
+
+    @PostMapping
+    public EmployeeResponse create(@Valid @RequestBody EmployeeRequest request) {
+        return employeeService.create(request);
     }
 
     @PutMapping("/{id}")
@@ -53,5 +55,10 @@ public class EmployeeController {
     @PatchMapping("/{id}/deactivate")
     public EmployeeResponse deactivate(@PathVariable Long id) {
         return employeeService.deactivate(id);
+    }
+
+    @GetMapping("/{id}/cost-history")
+    public List<EmployeeCostHistoryResponse> findCostHistory(@PathVariable Long id) {
+        return employeeService.findCostHistory(id);
     }
 }

@@ -4,14 +4,19 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { firstValueFrom, from, switchMap, timeout } from 'rxjs';
 
 import {
-  Employee,
-  EmployeeFilters,
-  EmployeeRequest,
+  EmployeeAssignment,
+  EmployeeAssignmentRequest,
   Equipment,
+  EquipmentAssignment,
+  EquipmentAssignmentRequest,
   EquipmentFilters,
   EquipmentRequest,
   Expense,
+  ExpenseDocument,
+  ExpenseDocumentType,
+  ExpenseFilters,
   ExpenseRequest,
+  FinancialSummary,
   ProjectFilters,
   ProjectLot,
   ProjectLotRequest,
@@ -71,53 +76,6 @@ export class ApiService {
   reformEquipment(id: number) {
     return from(this.getAuthHeaders()).pipe(
       switchMap((headers) => this.http.patch<Equipment>(`${this.apiUrl}/equipment/${id}/reform`, {}, { headers })),
-      timeout({ first: 5000 }),
-    );
-  }
-
-  getEmployees(filters: EmployeeFilters = {}) {
-    return from(this.getAuthHeaders()).pipe(
-      switchMap((headers) => {
-        let params = new HttpParams();
-
-        if (filters.search) {
-          params = params.set('search', filters.search);
-        }
-
-        if (filters.status) {
-          params = params.set('status', filters.status);
-        }
-
-        return this.http.get<Employee[]>(`${this.apiUrl}/employees`, { headers, params });
-      }),
-      timeout({ first: 5000 }),
-    );
-  }
-
-  getEmployee(id: number) {
-    return from(this.getAuthHeaders()).pipe(
-      switchMap((headers) => this.http.get<Employee>(`${this.apiUrl}/employees/${id}`, { headers })),
-      timeout({ first: 5000 }),
-    );
-  }
-
-  createEmployee(request: EmployeeRequest) {
-    return from(this.getAuthHeaders()).pipe(
-      switchMap((headers) => this.http.post<Employee>(`${this.apiUrl}/employees`, request, { headers })),
-      timeout({ first: 5000 }),
-    );
-  }
-
-  updateEmployee(id: number, request: EmployeeRequest) {
-    return from(this.getAuthHeaders()).pipe(
-      switchMap((headers) => this.http.put<Employee>(`${this.apiUrl}/employees/${id}`, request, { headers })),
-      timeout({ first: 5000 }),
-    );
-  }
-
-  deactivateEmployee(id: number) {
-    return from(this.getAuthHeaders()).pipe(
-      switchMap((headers) => this.http.patch<Employee>(`${this.apiUrl}/employees/${id}/deactivate`, {}, { headers })),
       timeout({ first: 5000 }),
     );
   }
@@ -204,9 +162,37 @@ export class ApiService {
     );
   }
 
+  getFinancialSummary(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.get<FinancialSummary>(`${this.apiUrl}/projects/${id}/financial-summary`, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
   getProjectExpenses(projectId: number) {
     return from(this.getAuthHeaders()).pipe(
       switchMap((headers) => this.http.get<Expense[]>(`${this.apiUrl}/projects/${projectId}/expenses`, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  getExpenses(filters: ExpenseFilters = {}) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => {
+        let params = new HttpParams();
+
+        if (filters.search) {
+          params = params.set('search', filters.search);
+        }
+        if (filters.category) {
+          params = params.set('category', filters.category);
+        }
+        if (filters.status) {
+          params = params.set('status', filters.status);
+        }
+
+        return this.http.get<Expense[]>(`${this.apiUrl}/expenses`, { headers, params });
+      }),
       timeout({ first: 5000 }),
     );
   }
@@ -227,9 +213,131 @@ export class ApiService {
     );
   }
 
+  invoiceExpense(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<Expense>(`${this.apiUrl}/expenses/${id}/invoice`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  payExpense(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<Expense>(`${this.apiUrl}/expenses/${id}/pay`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
   cancelExpense(id: number) {
     return from(this.getAuthHeaders()).pipe(
       switchMap((headers) => this.http.patch<Expense>(`${this.apiUrl}/expenses/${id}/cancel`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  uploadExpenseDocument(id: number, documentType: ExpenseDocumentType, file: File) {
+    const formData = new FormData();
+    formData.append('documentType', documentType);
+    formData.append('file', file);
+
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.post<ExpenseDocument>(`${this.apiUrl}/expenses/${id}/documents`, formData, { headers }),
+      ),
+      timeout({ first: 10000 }),
+    );
+  }
+
+  downloadExpenseDocument(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.get(`${this.apiUrl}/expense-documents/${id}/download`, { headers, responseType: 'blob' }),
+      ),
+      timeout({ first: 10000 }),
+    );
+  }
+
+  getEmployeeAssignments(projectId: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.get<EmployeeAssignment[]>(`${this.apiUrl}/projects/${projectId}/employee-assignments`, { headers }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  createEmployeeAssignment(projectId: number, request: EmployeeAssignmentRequest) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.post<EmployeeAssignment>(`${this.apiUrl}/projects/${projectId}/employee-assignments`, request, {
+          headers,
+        }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  updateEmployeeAssignment(id: number, request: EmployeeAssignmentRequest) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.put<EmployeeAssignment>(`${this.apiUrl}/employee-assignments/${id}`, request, { headers }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  validateEmployeeAssignment(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<EmployeeAssignment>(`${this.apiUrl}/employee-assignments/${id}/validate`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  cancelEmployeeAssignment(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<EmployeeAssignment>(`${this.apiUrl}/employee-assignments/${id}/cancel`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  getEquipmentAssignments(projectId: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.get<EquipmentAssignment[]>(`${this.apiUrl}/projects/${projectId}/equipment-assignments`, { headers }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  createEquipmentAssignment(projectId: number, request: EquipmentAssignmentRequest) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.post<EquipmentAssignment>(`${this.apiUrl}/projects/${projectId}/equipment-assignments`, request, {
+          headers,
+        }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  updateEquipmentAssignment(id: number, request: EquipmentAssignmentRequest) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) =>
+        this.http.put<EquipmentAssignment>(`${this.apiUrl}/equipment-assignments/${id}`, request, { headers }),
+      ),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  validateEquipmentAssignment(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<EquipmentAssignment>(`${this.apiUrl}/equipment-assignments/${id}/validate`, {}, { headers })),
+      timeout({ first: 5000 }),
+    );
+  }
+
+  cancelEquipmentAssignment(id: number) {
+    return from(this.getAuthHeaders()).pipe(
+      switchMap((headers) => this.http.patch<EquipmentAssignment>(`${this.apiUrl}/equipment-assignments/${id}/cancel`, {}, { headers })),
       timeout({ first: 5000 }),
     );
   }

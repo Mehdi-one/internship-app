@@ -1,6 +1,7 @@
 package com.example.internshipapp.equipment.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import com.example.internshipapp.common.enums.EquipmentStatus;
 import com.example.internshipapp.common.enums.EquipmentType;
@@ -20,5 +21,7 @@ public record EquipmentRequest(
         @DecimalMin(value = "0.00") BigDecimal fuelConsumption,
         @DecimalMin(value = "0.00") BigDecimal maintenanceCost,
         @DecimalMin(value = "0.00") BigDecimal insuranceCost,
+        LocalDate nextMaintenanceDate,
+        LocalDate insuranceExpiryDate,
         EquipmentStatus status) {
 }

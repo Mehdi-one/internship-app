@@ -3,7 +3,9 @@
     <h1>Salaries</h1>
     <p>Gerer les salaries et leur cout horaire charge.</p>
   </div>
-  <a routerLink="/employees/new" class="button-link">Nouveau salarie</a>
+  @if (authorization.canManageResources()) {
+    <a routerLink="/employees/new" class="button-link">Nouveau salarie</a>
+  }
 </section>
 
 @if (message) {
@@ -56,27 +58,30 @@
           <th>Nom complet</th>
           <th>Qualification</th>
           <th>Contrat</th>
-          <th>Cout horaire</th>
+          <th>Coût horaire chargé</th>
           <th>Statut</th>
-          <th></th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         @for (employee of employees; track employee.id) {
-          <tr>
-            <td>{{ employee.registrationNumber }}</td>
-            <td>{{ employee.fullName }}</td>
+          <tr [class.inactive-row]="employee.status === 'INACTIVE'">
+            <td><a class="table-link" [routerLink]="['/employees', employee.id]">{{ employee.matricule }}</a></td>
+            <td><a class="table-link" [routerLink]="['/employees', employee.id]">{{ employee.fullName }}</a></td>
             <td>{{ employee.qualification }}</td>
             <td>{{ employee.contractType | labelFr }}</td>
             <td class="money">{{ employee.hourlyCost }} DHS/h</td>
             <td><span class="status-badge status-{{ employee.status.toLowerCase() }}">{{ employee.status | labelFr }}</span></td>
             <td>
+              @if (authorization.canManageResources()) {
               <div class="form-actions">
+                <a [routerLink]="['/employees', employee.id]" class="button-link secondary">Consulter</a>
                 <a [routerLink]="['/employees', employee.id, 'edit']" class="button-link secondary">Modifier</a>
                 <button class="secondary-button" type="button" (click)="deactivateEmployee(employee.id)" [disabled]="employee.status === 'INACTIVE'">
                   Desactiver
                 </button>
               </div>
+              }
             </td>
           </tr>
         }
@@ -87,6 +92,8 @@
   <section class="empty-state">
     <h2>Aucun salarie trouve</h2>
     <p>Creer le premier salarie ou modifier les filtres.</p>
-    <a routerLink="/employees/new" class="button-link">Creer un salarie</a>
+    @if (authorization.canManageResources()) {
+      <a routerLink="/employees/new" class="button-link">Creer un salarie</a>
+    }
   </section>
 }

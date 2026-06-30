@@ -1,0 +1,48 @@
+{
+  "realm": "internship-app",
+  "enabled": true,
+  "displayName": "Internship App",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "DIRIGEANT",
+        "description": "Vision globale, budgets, marges et cloture des marches"
+      },
+      {
+        "name": "CONDUCTEUR",
+        "description": "Gestion operationnelle des marches, depenses et pointages"
+      },
+      {
+        "name": "GESTIONNAIRE",
+        "description": "Gestion des depenses, salaries, couts et materiel"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administration complete de la plateforme"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "angular-client",
+      "name": "Angular Frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:4200/*",
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}

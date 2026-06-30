@@ -1,6 +1,7 @@
 package com.example.internshipapp.equipment;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.internshipapp.common.enums.EquipmentStatus;
@@ -54,6 +55,12 @@ public class Equipment {
 
     @Column(precision = 15, scale = 2)
     private BigDecimal insuranceCost;
+
+    @Column(name = "next_maintenance_date")
+    private LocalDate nextMaintenanceDate;
+
+    @Column(name = "insurance_expiry_date")
+    private LocalDate insuranceExpiryDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -163,6 +170,22 @@ public class Equipment {
 
     public void setInsuranceCost(BigDecimal insuranceCost) {
         this.insuranceCost = insuranceCost;
+    }
+
+    public LocalDate getNextMaintenanceDate() {
+        return nextMaintenanceDate;
+    }
+
+    public void setNextMaintenanceDate(LocalDate nextMaintenanceDate) {
+        this.nextMaintenanceDate = nextMaintenanceDate;
+    }
+
+    public LocalDate getInsuranceExpiryDate() {
+        return insuranceExpiryDate;
+    }
+
+    public void setInsuranceExpiryDate(LocalDate insuranceExpiryDate) {
+        this.insuranceExpiryDate = insuranceExpiryDate;
     }
 
     public EquipmentStatus getStatus() {

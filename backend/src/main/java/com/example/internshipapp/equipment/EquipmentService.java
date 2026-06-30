@@ -1,5 +1,6 @@
 package com.example.internshipapp.equipment;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.internshipapp.common.enums.EquipmentStatus;
 import com.example.internshipapp.common.enums.EquipmentType;
-import com.example.internshipapp.common.enums.UsageCostType;
 import com.example.internshipapp.common.exception.ResourceNotFoundException;
 import com.example.internshipapp.equipment.dto.EquipmentRequest;
 import com.example.internshipapp.equipment.dto.EquipmentResponse;
@@ -88,11 +88,13 @@ public class EquipmentService {
         equipment.setType(request.type() == null ? EquipmentType.OTHER : request.type());
         equipment.setBrandModel(request.brandModel());
         equipment.setAcquisitionCost(request.acquisitionCost());
-        equipment.setUsageCostType(request.usageCostType() == null ? UsageCostType.HOURLY : request.usageCostType());
+        equipment.setUsageCostType(request.usageCostType());
         equipment.setUsageCost(request.usageCost());
         equipment.setFuelConsumption(request.fuelConsumption());
         equipment.setMaintenanceCost(request.maintenanceCost());
         equipment.setInsuranceCost(request.insuranceCost());
+        equipment.setNextMaintenanceDate(request.nextMaintenanceDate());
+        equipment.setInsuranceExpiryDate(request.insuranceExpiryDate());
         equipment.setStatus(request.status() == null ? EquipmentStatus.AVAILABLE : request.status());
     }
 
@@ -108,8 +110,16 @@ public class EquipmentService {
                 equipment.getFuelConsumption(),
                 equipment.getMaintenanceCost(),
                 equipment.getInsuranceCost(),
+                equipment.getNextMaintenanceDate(),
+                equipment.getInsuranceExpiryDate(),
+                isDueSoon(equipment.getNextMaintenanceDate()),
+                isDueSoon(equipment.getInsuranceExpiryDate()),
                 equipment.getStatus(),
                 equipment.getCreatedAt(),
                 equipment.getUpdatedAt());
+    }
+
+    private boolean isDueSoon(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now().plusDays(30));
     }
 }

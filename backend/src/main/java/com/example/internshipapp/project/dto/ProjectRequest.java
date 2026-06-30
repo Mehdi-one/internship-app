@@ -15,14 +15,13 @@ import jakarta.validation.constraints.NotNull;
 public record ProjectRequest(
         @NotBlank String reference,
         @NotBlank String title,
-        @NotBlank String clientName,
+        @NotBlank String contractingAuthority,
         @NotNull ProjectType projectType,
-        @NotNull @DecimalMin(value = "0.01") BigDecimal amountHT,
+        @NotNull @DecimalMin(value = "0.01") BigDecimal awardedAmountHT,
         @NotNull @DecimalMin(value = "0.00") @DecimalMax(value = "100.00") BigDecimal tvaRate,
-        @NotNull @DecimalMin(value = "0.01") BigDecimal estimatedBudget,
-        LocalDate startDate,
-        LocalDate endDate,
+        @NotNull @DecimalMin(value = "0.01") BigDecimal estimatedDryCost,
+        LocalDate notificationOrderDate,
         @Min(1) Integer executionDelayDays,
-        @NotBlank String responsibleName,
+        @NotBlank String responsibleUserReference,
         ProjectStatus status) {
 }

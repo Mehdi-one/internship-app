@@ -4,6 +4,6 @@ public enum ProjectStatus {
     PROSPECT,
     IN_PROGRESS,
     SUSPENDED,
-    DELIVERED,
+    RECEIVED,
     CLOSED
 }

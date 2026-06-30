@@ -3,4 +3,5 @@ target/
 dist/
 .angular/
 *.log
+backend/uploads/
 .env

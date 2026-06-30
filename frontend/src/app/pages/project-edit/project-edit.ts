@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { ProjectRequest } from '../../models/business.models';
 import { ApiService } from '../../services/api.service';
+import { calculatePlannedEndDate, CONTRACTING_AUTHORITIES } from '../project-form/project-form.config';
 
 @Component({
   selector: 'app-project-edit',
@@ -18,16 +19,17 @@ export class ProjectEditComponent implements OnInit {
 
   projectId = 0;
   message = '';
+  readonly contractingAuthorities = CONTRACTING_AUTHORITIES;
   project: ProjectRequest = {
     reference: '',
     title: '',
-    clientName: '',
+    contractingAuthority: '',
     projectType: 'WORKS',
-    amountHT: 0,
+    awardedAmountHT: 0,
     tvaRate: 20,
-    estimatedBudget: 0,
-    responsibleName: '',
-    status: 'IN_PROGRESS',
+    estimatedDryCost: 0,
+    responsibleUserReference: '',
+    status: 'PROSPECT',
   };
 
   ngOnInit() {
@@ -43,15 +45,14 @@ export class ProjectEditComponent implements OnInit {
         this.project = {
           reference: project.reference,
           title: project.title,
-          clientName: project.clientName || '',
+          contractingAuthority: project.contractingAuthority,
           projectType: project.projectType || 'WORKS',
-          amountHT: project.amountHT,
+          awardedAmountHT: project.awardedAmountHT,
           tvaRate: project.tvaRate ?? 20,
-          estimatedBudget: project.estimatedBudget,
-          startDate: project.startDate,
-          endDate: project.endDate,
+          estimatedDryCost: project.estimatedDryCost,
+          notificationOrderDate: project.notificationOrderDate,
           executionDelayDays: project.executionDelayDays,
-          responsibleName: project.responsibleName || '',
+          responsibleUserReference: project.responsibleUserReference,
           status: project.status,
         };
         this.message = '';
@@ -72,7 +73,6 @@ export class ProjectEditComponent implements OnInit {
     }
 
     this.message = 'Enregistrement du marche...';
-
     this.apiService.updateProject(this.projectId, this.project).subscribe({
       next: (project) => {
         this.message = 'Marche enregistre.';
@@ -85,5 +85,9 @@ export class ProjectEditComponent implements OnInit {
         this.changeDetectorRef.detectChanges();
       },
     });
+  }
+
+  get plannedEndDate() {
+    return calculatePlannedEndDate(this.project.notificationOrderDate, this.project.executionDelayDays);
   }
 }

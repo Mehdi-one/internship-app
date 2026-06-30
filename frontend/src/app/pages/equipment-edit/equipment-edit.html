@@ -1,13 +1,20 @@
 <section class="page-header">
   <div>
     <h1>Modifier le materiel</h1>
-    <p>Mettre a jour le cout d'utilisation, la disponibilite et les couts d'exploitation.</p>
+    <p>Mettre a jour les informations du materiel appartenant a la societe.</p>
   </div>
   <a routerLink="/equipment" class="button-link secondary">Retour</a>
 </section>
 
 @if (message) {
   <p class="notice">{{ message }}</p>
+}
+
+@if (equipmentDetail?.maintenanceDueSoon) {
+  <div class="alert-banner alert-warning">⚠ Maintenance prévue le {{ equipmentDetail?.nextMaintenanceDate }} — dans moins de 30 jours</div>
+}
+@if (equipmentDetail?.insuranceExpiringSoon) {
+  <div class="alert-banner alert-warning">⚠ Assurance expire le {{ equipmentDetail?.insuranceExpiryDate }} — dans moins de 30 jours</div>
 }
 
 <form #equipmentForm="ngForm" class="panel form-grid" novalidate (ngSubmit)="submit(equipmentForm)">
@@ -44,7 +51,7 @@
   </label>
 
   <label>
-    Type de cout d'utilisation <span class="required-marker">*</span>
+    Unite du cout d'usage <span class="required-marker">*</span>
     <select name="usageCostType" required [(ngModel)]="equipment.usageCostType">
       <option value="HOURLY">Horaire</option>
       <option value="DAILY">Journalier</option>
@@ -52,26 +59,36 @@
   </label>
 
   <label [class.invalid]="equipmentForm.submitted && usageCost.invalid">
-    Cout d'utilisation <span class="required-marker">*</span>
+    Cout d'usage <span class="required-marker">*</span>
     <input #usageCost="ngModel" name="usageCost" type="number" min="0.01" step="0.01" required [(ngModel)]="equipment.usageCost" />
     @if (equipmentForm.submitted && usageCost.invalid) {
-      <span class="field-error">Le cout d'utilisation doit etre superieur a 0.</span>
+      <span class="field-error">Le cout d'usage doit etre superieur a 0.</span>
     }
   </label>
 
   <label>
-    Consommation carburant
+    Consommation carburant estimee
     <input name="fuelConsumption" type="number" min="0" step="0.01" [(ngModel)]="equipment.fuelConsumption" />
   </label>
 
   <label>
-    Cout maintenance
+    Coût de maintenance
     <input name="maintenanceCost" type="number" min="0" step="0.01" [(ngModel)]="equipment.maintenanceCost" />
   </label>
 
   <label>
-    Cout assurance
+    Date prochaine maintenance
+    <input name="nextMaintenanceDate" type="date" [(ngModel)]="equipment.nextMaintenanceDate" />
+  </label>
+
+  <label>
+    Assurance annuelle
     <input name="insuranceCost" type="number" min="0" step="0.01" [(ngModel)]="equipment.insuranceCost" />
+  </label>
+
+  <label>
+    Date expiration assurance
+    <input name="insuranceExpiryDate" type="date" [(ngModel)]="equipment.insuranceExpiryDate" />
   </label>
 
   <label>
@@ -88,3 +105,45 @@
     <button type="submit">Enregistrer le materiel</button>
   </div>
 </form>
+
+<section class="panel">
+  <div class="section-heading">
+    <div>
+      <h2>Carburant</h2>
+      <p>Enregistrer les pleins indépendamment des pointages matériel.</p>
+    </div>
+  </div>
+
+  <app-fuel-log-form (fuelLogSubmitted)="addFuelLog($event)"></app-fuel-log-form>
+
+  @if (fuelLogs.length > 0) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Litres</th>
+            <th>Prix/L</th>
+            <th>Total</th>
+            <th>Km/h</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fuelLog of fuelLogs; track fuelLog.id) {
+            <tr>
+              <td>{{ fuelLog.date }}</td>
+              <td>{{ fuelLog.liters }}</td>
+              <td class="money">{{ fuelLog.costPerLiter }} DHS</td>
+              <td class="money">{{ fuelLog.totalCost }} DHS</td>
+              <td>{{ fuelLog.mileageOrHours ?? '-' }}</td>
+              <td>{{ fuelLog.notes || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="empty-inline">Aucun plein enregistré pour ce matériel.</p>
+  }
+</section>

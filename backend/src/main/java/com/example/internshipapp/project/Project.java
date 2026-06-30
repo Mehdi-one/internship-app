@@ -32,27 +32,31 @@ public class Project {
     @Column(nullable = false)
     private String title;
 
-    private String clientName;
+    @Column(name = "client_name")
+    private String contractingAuthority;
 
     @Enumerated(EnumType.STRING)
     private ProjectType projectType;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal amountHT;
+    @Column(name = "amountht", nullable = false, precision = 15, scale = 2)
+    private BigDecimal awardedAmountHT;
 
     @Column(precision = 5, scale = 2)
     private BigDecimal tvaRate;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal estimatedBudget;
+    @Column(name = "estimated_budget", nullable = false, precision = 15, scale = 2)
+    private BigDecimal estimatedDryCost;
 
-    private LocalDate startDate;
+    @Column(name = "start_date")
+    private LocalDate notificationOrderDate;
 
-    private LocalDate endDate;
+    @Column(name = "end_date")
+    private LocalDate plannedEndDate;
 
     private Integer executionDelayDays;
 
-    private String responsibleName;
+    @Column(name = "responsible_name")
+    private String responsibleUserReference;
 
     private Boolean archived;
 
@@ -73,7 +77,7 @@ public class Project {
         updatedAt = now;
 
         if (status == null) {
-            status = ProjectStatus.IN_PROGRESS;
+            status = ProjectStatus.PROSPECT;
         }
 
         if (archived == null) {
@@ -106,12 +110,12 @@ public class Project {
         this.title = title;
     }
 
-    public String getClientName() {
-        return clientName;
+    public String getContractingAuthority() {
+        return contractingAuthority;
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
+    public void setContractingAuthority(String contractingAuthority) {
+        this.contractingAuthority = contractingAuthority;
     }
 
     public ProjectType getProjectType() {
@@ -122,12 +126,12 @@ public class Project {
         this.projectType = projectType;
     }
 
-    public BigDecimal getAmountHT() {
-        return amountHT;
+    public BigDecimal getAwardedAmountHT() {
+        return awardedAmountHT;
     }
 
-    public void setAmountHT(BigDecimal amountHT) {
-        this.amountHT = amountHT;
+    public void setAwardedAmountHT(BigDecimal awardedAmountHT) {
+        this.awardedAmountHT = awardedAmountHT;
     }
 
     public BigDecimal getTvaRate() {
@@ -138,28 +142,28 @@ public class Project {
         this.tvaRate = tvaRate;
     }
 
-    public BigDecimal getEstimatedBudget() {
-        return estimatedBudget;
+    public BigDecimal getEstimatedDryCost() {
+        return estimatedDryCost;
     }
 
-    public void setEstimatedBudget(BigDecimal estimatedBudget) {
-        this.estimatedBudget = estimatedBudget;
+    public void setEstimatedDryCost(BigDecimal estimatedDryCost) {
+        this.estimatedDryCost = estimatedDryCost;
     }
 
-    public LocalDate getStartDate() {
-        return startDate;
+    public LocalDate getNotificationOrderDate() {
+        return notificationOrderDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
+    public void setNotificationOrderDate(LocalDate notificationOrderDate) {
+        this.notificationOrderDate = notificationOrderDate;
     }
 
-    public LocalDate getEndDate() {
-        return endDate;
+    public LocalDate getPlannedEndDate() {
+        return plannedEndDate;
     }
 
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
+    public void setPlannedEndDate(LocalDate plannedEndDate) {
+        this.plannedEndDate = plannedEndDate;
     }
 
     public Integer getExecutionDelayDays() {
@@ -170,12 +174,12 @@ public class Project {
         this.executionDelayDays = executionDelayDays;
     }
 
-    public String getResponsibleName() {
-        return responsibleName;
+    public String getResponsibleUserReference() {
+        return responsibleUserReference;
     }
 
-    public void setResponsibleName(String responsibleName) {
-        this.responsibleName = responsibleName;
+    public void setResponsibleUserReference(String responsibleUserReference) {
+        this.responsibleUserReference = responsibleUserReference;
     }
 
     public Boolean getArchived() {

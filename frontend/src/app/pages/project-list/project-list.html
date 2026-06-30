@@ -3,7 +3,9 @@
     <h1>Marches</h1>
     <p>Gerer les marches et suivre les premiers indicateurs financiers.</p>
   </div>
-  <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+  @if (authorization.canManageProjects()) {
+    <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+  }
 </section>
 
 @if (message) {
@@ -53,12 +55,12 @@
       <thead>
         <tr>
           <th>Reference</th>
-          <th>Titre</th>
+          <th>Intitule / objet</th>
           <th>Maitre d'ouvrage</th>
           <th>Type</th>
-          <th>Responsable</th>
-          <th>Montant HT</th>
-          <th>Budget</th>
+          <th>Responsable (conducteur)</th>
+          <th>Montant adjuge HT</th>
+          <th>Debourse sec estime</th>
           <th>Statut</th>
           <th>Archive</th>
         </tr>
@@ -68,11 +70,11 @@
           <tr>
             <td><a class="table-link" [routerLink]="['/projects', project.id]">{{ project.reference }}</a></td>
             <td>{{ project.title }}</td>
-            <td>{{ project.clientName || '-' }}</td>
+            <td>{{ project.contractingAuthority }}</td>
             <td>{{ project.projectType | labelFr }}</td>
-            <td>{{ project.responsibleName || '-' }}</td>
-            <td class="money">{{ project.amountHT }} DHS</td>
-            <td class="money">{{ project.estimatedBudget }} DHS</td>
+            <td>{{ project.responsibleUserReference }}</td>
+            <td class="money">{{ project.awardedAmountHT }} DHS</td>
+            <td class="money">{{ project.estimatedDryCost }} DHS</td>
             <td><span class="status-badge status-{{ project.status.toLowerCase().replace('_', '-') }}">{{ project.status | labelFr }}</span></td>
             <td><span class="status-badge status-{{ project.archived ? 'archived' : 'active' }}">{{ project.archived ? 'Archive' : 'Non archive' }}</span></td>
           </tr>
@@ -84,6 +86,8 @@
   <section class="empty-state">
     <h2>Aucun marche trouve</h2>
     <p>Creer le premier marche ou modifier les filtres.</p>
-    <a routerLink="/projects/new" class="button-link">Creer un marche</a>
+    @if (authorization.canManageProjects()) {
+      <a routerLink="/projects/new" class="button-link">Creer un marche</a>
+    }
   </section>
 }

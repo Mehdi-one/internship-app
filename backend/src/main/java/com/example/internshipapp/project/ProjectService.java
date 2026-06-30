@@ -2,27 +2,55 @@ package com.example.internshipapp.project;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.example.internshipapp.assignment.EmployeeAssignmentRepository;
+import com.example.internshipapp.assignment.EquipmentAssignmentRepository;
 import com.example.internshipapp.common.enums.ProjectStatus;
 import com.example.internshipapp.common.exception.ResourceNotFoundException;
 import com.example.internshipapp.expense.ExpenseRepository;
 import com.example.internshipapp.project.dto.ProjectRequest;
 import com.example.internshipapp.project.dto.ProjectResponse;
 import com.example.internshipapp.project.dto.ProjectSummaryResponse;
+import com.example.internshipapp.project.dto.FinancialSummaryResponse;
 
 @Service
 public class ProjectService {
 
+    private static final Set<BigDecimal> ALLOWED_TVA_RATES = Set.of(
+            BigDecimal.ZERO,
+            BigDecimal.valueOf(7),
+            BigDecimal.TEN,
+            BigDecimal.valueOf(14),
+            BigDecimal.valueOf(20));
+
     private final ProjectRepository projectRepository;
     private final ExpenseRepository expenseRepository;
+    private final EmployeeAssignmentRepository employeeAssignmentRepository;
+    private final EquipmentAssignmentRepository equipmentAssignmentRepository;
+    private BigDecimal budgetAlertThreshold = BigDecimal.valueOf(80);
 
-    public ProjectService(ProjectRepository projectRepository, ExpenseRepository expenseRepository) {
+    public ProjectService(
+            ProjectRepository projectRepository,
+            ExpenseRepository expenseRepository,
+            EmployeeAssignmentRepository employeeAssignmentRepository,
+            EquipmentAssignmentRepository equipmentAssignmentRepository) {
         this.projectRepository = projectRepository;
         this.expenseRepository = expenseRepository;
+        this.employeeAssignmentRepository = employeeAssignmentRepository;
+        this.equipmentAssignmentRepository = equipmentAssignmentRepository;
+    }
+
+    @Value("${app.alert.budget-threshold:80.0}")
+    void setBudgetAlertThreshold(BigDecimal budgetAlertThreshold) {
+        this.budgetAlertThreshold = budgetAlertThreshold;
     }
 
     @Transactional
@@ -86,6 +114,9 @@ public class ProjectService {
     @Transactional
     public ProjectResponse archive(Long id) {
         Project project = getProject(id);
+        if (project.getStatus() != ProjectStatus.CLOSED) {
+            throw new IllegalArgumentException("Only a closed project can be archived");
+        }
         project.setArchived(true);
         return toResponse(projectRepository.save(project));
     }
@@ -93,20 +124,55 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public ProjectSummaryResponse getSummary(Long id) {
         Project project = getProject(id);
-        BigDecimal totalExpenses = expenseRepository.sumNonCancelledExpensesByProjectId(id);
-        BigDecimal margin = project.getAmountHT().subtract(totalExpenses);
+        BigDecimal directExpenses = expenseRepository.sumNonCancelledExpensesByProjectId(id);
+        BigDecimal laborCost = employeeAssignmentRepository.sumValidatedCostByProjectId(id);
+        BigDecimal equipmentCost = equipmentAssignmentRepository.sumValidatedCostByProjectId(id);
+        BigDecimal totalExpenses = directExpenses.add(laborCost).add(equipmentCost);
+        BigDecimal forecastMargin = project.getAwardedAmountHT().subtract(project.getEstimatedDryCost());
+        BigDecimal provisionalGrossMargin = project.getAwardedAmountHT().subtract(totalExpenses);
+        BigDecimal remainingBudget = project.getEstimatedDryCost().subtract(totalExpenses);
 
         return new ProjectSummaryResponse(
                 project.getId(),
                 project.getReference(),
                 project.getTitle(),
-                project.getAmountHT(),
-                project.getEstimatedBudget(),
+                project.getAwardedAmountHT(),
+                project.getEstimatedDryCost(),
+                directExpenses,
+                laborCost,
+                equipmentCost,
                 totalExpenses,
-                margin,
-                percentage(margin, project.getAmountHT()),
-                percentage(totalExpenses, project.getEstimatedBudget()),
+                forecastMargin,
+                percentage(forecastMargin, project.getAwardedAmountHT()),
+                provisionalGrossMargin,
+                percentage(provisionalGrossMargin, project.getAwardedAmountHT()),
+                remainingBudget,
+                percentage(totalExpenses, project.getEstimatedDryCost()),
                 project.getStatus());
+    }
+
+    @Transactional(readOnly = true)
+    public FinancialSummaryResponse getFinancialSummary(Long id) {
+        ProjectSummaryResponse summary = getSummary(id);
+        boolean canViewMargin = currentUserHasRole("DIRIGEANT") || currentUserHasRole("ADMIN");
+        BigDecimal consumption = summary.budgetConsumptionRate();
+        boolean budgetCritical = consumption.compareTo(BigDecimal.valueOf(100)) >= 0;
+        boolean budgetAlert = consumption.compareTo(budgetAlertThreshold) >= 0;
+
+        return new FinancialSummaryResponse(
+                summary.projectId(),
+                summary.estimatedDryCost(),
+                summary.totalExpenses(),
+                summary.laborCost(),
+                summary.equipmentCost(),
+                summary.directExpenses(),
+                consumption,
+                budgetAlertThreshold,
+                budgetAlert,
+                budgetCritical,
+                canViewMargin ? summary.awardedAmountHT() : null,
+                canViewMargin ? summary.provisionalGrossMargin() : null,
+                canViewMargin ? summary.provisionalGrossMarginRate() : null);
     }
 
     public Project getProject(Long id) {
@@ -117,16 +183,33 @@ public class ProjectService {
     private void fillProject(Project project, ProjectRequest request) {
         project.setReference(request.reference());
         project.setTitle(request.title());
-        project.setClientName(request.clientName());
+        validateTvaRate(request.tvaRate());
+        project.setContractingAuthority(request.contractingAuthority());
         project.setProjectType(request.projectType());
-        project.setAmountHT(request.amountHT());
+        project.setAwardedAmountHT(request.awardedAmountHT());
         project.setTvaRate(request.tvaRate());
-        project.setEstimatedBudget(request.estimatedBudget());
-        project.setStartDate(request.startDate());
-        project.setEndDate(request.endDate());
+        project.setEstimatedDryCost(request.estimatedDryCost());
+        project.setNotificationOrderDate(request.notificationOrderDate());
         project.setExecutionDelayDays(request.executionDelayDays());
-        project.setResponsibleName(request.responsibleName());
-        project.setStatus(request.status() == null ? ProjectStatus.IN_PROGRESS : request.status());
+        project.setPlannedEndDate(calculatePlannedEndDate(
+                request.notificationOrderDate(), request.executionDelayDays()));
+        project.setResponsibleUserReference(request.responsibleUserReference());
+        project.setStatus(request.status() == null ? ProjectStatus.PROSPECT : request.status());
+    }
+
+    private LocalDate calculatePlannedEndDate(LocalDate notificationOrderDate, Integer executionDelayDays) {
+        if (notificationOrderDate == null || executionDelayDays == null) {
+            return null;
+        }
+        return notificationOrderDate.plusDays(executionDelayDays - 1L);
+    }
+
+    private void validateTvaRate(BigDecimal tvaRate) {
+        boolean allowed = ALLOWED_TVA_RATES.stream()
+                .anyMatch(rate -> rate.compareTo(tvaRate) == 0);
+        if (!allowed) {
+            throw new IllegalArgumentException("TVA rate must be one of: 0, 7, 10, 14, 20");
+        }
     }
 
     private ProjectResponse toResponse(Project project) {
@@ -134,15 +217,15 @@ public class ProjectService {
                 project.getId(),
                 project.getReference(),
                 project.getTitle(),
-                project.getClientName(),
+                project.getContractingAuthority(),
                 project.getProjectType(),
-                project.getAmountHT(),
+                project.getAwardedAmountHT(),
                 project.getTvaRate(),
-                project.getEstimatedBudget(),
-                project.getStartDate(),
-                project.getEndDate(),
+                project.getEstimatedDryCost(),
+                project.getNotificationOrderDate(),
                 project.getExecutionDelayDays(),
-                project.getResponsibleName(),
+                project.getPlannedEndDate(),
+                project.getResponsibleUserReference(),
                 Boolean.TRUE.equals(project.getArchived()),
                 project.getStatus(),
                 project.getCreatedAt(),
@@ -156,5 +239,11 @@ public class ProjectService {
 
         return value.multiply(BigDecimal.valueOf(100))
                 .divide(total, 2, RoundingMode.HALF_UP);
+    }
+
+    private boolean currentUserHasRole(String role) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
     }
 }

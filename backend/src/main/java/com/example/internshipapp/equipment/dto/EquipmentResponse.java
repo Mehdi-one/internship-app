@@ -1,6 +1,7 @@
 package com.example.internshipapp.equipment.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.internshipapp.common.enums.EquipmentStatus;
@@ -18,6 +19,10 @@ public record EquipmentResponse(
         BigDecimal fuelConsumption,
         BigDecimal maintenanceCost,
         BigDecimal insuranceCost,
+        LocalDate nextMaintenanceDate,
+        LocalDate insuranceExpiryDate,
+        boolean maintenanceDueSoon,
+        boolean insuranceExpiringSoon,
         EquipmentStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {

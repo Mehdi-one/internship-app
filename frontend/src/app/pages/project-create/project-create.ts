@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { ProjectRequest } from '../../models/business.models';
 import { ApiService } from '../../services/api.service';
+import { calculatePlannedEndDate, CONTRACTING_AUTHORITIES } from '../project-form/project-form.config';
 
 @Component({
   selector: 'app-project-create',
@@ -16,16 +17,17 @@ export class ProjectCreateComponent {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   message = '';
+  readonly contractingAuthorities = CONTRACTING_AUTHORITIES;
   project: ProjectRequest = {
     reference: '',
     title: '',
-    clientName: '',
+    contractingAuthority: '',
     projectType: 'WORKS',
-    amountHT: 0,
+    awardedAmountHT: 0,
     tvaRate: 20,
-    estimatedBudget: 0,
-    responsibleName: '',
-    status: 'IN_PROGRESS',
+    estimatedDryCost: 0,
+    responsibleUserReference: '',
+    status: 'PROSPECT',
   };
 
   submit(form: NgForm) {
@@ -35,7 +37,6 @@ export class ProjectCreateComponent {
     }
 
     this.message = 'Creation du marche...';
-
     this.apiService.createProject(this.project).subscribe({
       next: (createdProject) => {
         this.message = 'Marche cree.';
@@ -48,5 +49,9 @@ export class ProjectCreateComponent {
         this.changeDetectorRef.detectChanges();
       },
     });
+  }
+
+  get plannedEndDate() {
+    return calculatePlannedEndDate(this.project.notificationOrderDate, this.project.executionDelayDays);
   }
 }

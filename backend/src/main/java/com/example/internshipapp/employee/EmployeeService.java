@@ -1,13 +1,16 @@
 package com.example.internshipapp.employee;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.internshipapp.common.enums.ContractType;
 import com.example.internshipapp.common.enums.EmployeeStatus;
 import com.example.internshipapp.common.exception.ResourceNotFoundException;
+import com.example.internshipapp.employee.dto.EmployeeCostHistoryResponse;
+import com.example.internshipapp.employee.dto.EmployeeDetailResponse;
 import com.example.internshipapp.employee.dto.EmployeeRequest;
 import com.example.internshipapp.employee.dto.EmployeeResponse;
 
@@ -15,20 +18,26 @@ import com.example.internshipapp.employee.dto.EmployeeResponse;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeCostHistoryRepository costHistoryRepository;
 
-    public EmployeeService(EmployeeRepository employeeRepository) {
+    public EmployeeService(
+            EmployeeRepository employeeRepository,
+            EmployeeCostHistoryRepository costHistoryRepository) {
         this.employeeRepository = employeeRepository;
+        this.costHistoryRepository = costHistoryRepository;
     }
 
     @Transactional
     public EmployeeResponse create(EmployeeRequest request) {
-        if (employeeRepository.existsByRegistrationNumber(request.registrationNumber())) {
-            throw new IllegalArgumentException("Employee registration number already exists");
+        if (employeeRepository.existsByMatricule(request.matricule())) {
+            throw new IllegalArgumentException("Employee matricule already exists");
         }
 
         Employee employee = new Employee();
         fillEmployee(employee, request);
-        return toResponse(employeeRepository.save(employee));
+        Employee savedEmployee = employeeRepository.save(employee);
+        costHistoryRepository.save(newCostHistory(savedEmployee, savedEmployee.getHourlyCost(), LocalDate.now()));
+        return toResponse(savedEmployee);
     }
 
     @Transactional(readOnly = true)
@@ -46,28 +55,37 @@ public class EmployeeService {
             employees = employeeRepository.searchByStatus(normalizedSearch, status);
         }
 
-        return employees.stream()
-                .map(this::toResponse)
-                .toList();
+        return employees.stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public EmployeeResponse findById(Long id) {
-        return toResponse(getEmployee(id));
+    public EmployeeDetailResponse findById(Long id) {
+        Employee employee = getEmployee(id);
+        return toDetailResponse(employee, findCostHistoryEntities(id));
     }
 
     @Transactional
     public EmployeeResponse update(Long id, EmployeeRequest request) {
         Employee employee = getEmployee(id);
+        BigDecimal previousHourlyCost = employee.getHourlyCost();
 
-        employeeRepository.findByRegistrationNumber(request.registrationNumber())
+        employeeRepository.findByMatricule(request.matricule())
                 .filter(existingEmployee -> !existingEmployee.getId().equals(id))
                 .ifPresent(existingEmployee -> {
-                    throw new IllegalArgumentException("Employee registration number already exists");
+                    throw new IllegalArgumentException("Employee matricule already exists");
                 });
 
         fillEmployee(employee, request);
-        return toResponse(employeeRepository.save(employee));
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        if (previousHourlyCost.compareTo(savedEmployee.getHourlyCost()) != 0) {
+            costHistoryRepository.save(newCostHistory(
+                    savedEmployee,
+                    savedEmployee.getHourlyCost(),
+                    LocalDate.now()));
+        }
+
+        return toResponse(savedEmployee);
     }
 
     @Transactional
@@ -77,24 +95,52 @@ public class EmployeeService {
         return toResponse(employeeRepository.save(employee));
     }
 
+    @Transactional(readOnly = true)
+    public List<EmployeeCostHistoryResponse> findCostHistory(Long employeeId) {
+        getEmployee(employeeId);
+        return findCostHistoryEntities(employeeId).stream().map(this::toCostHistoryResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getCostAtDate(Long employeeId, LocalDate date) {
+        getEmployee(employeeId);
+        return costHistoryRepository
+                .findTopByEmployeeIdAndEffectiveDateLessThanEqualOrderByEffectiveDateDesc(employeeId, date)
+                .map(EmployeeCostHistory::getHourlyCost)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No hourly cost is effective for this employee on the pointage date"));
+    }
+
     private Employee getEmployee(Long id) {
         return employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
     }
 
+    private List<EmployeeCostHistory> findCostHistoryEntities(Long employeeId) {
+        return costHistoryRepository.findByEmployeeIdOrderByEffectiveDateDescCreatedAtDesc(employeeId);
+    }
+
     private void fillEmployee(Employee employee, EmployeeRequest request) {
-        employee.setRegistrationNumber(request.registrationNumber());
-        employee.setFullName(request.fullName());
-        employee.setQualification(request.qualification());
-        employee.setContractType(request.contractType() == null ? ContractType.OTHER : request.contractType());
+        employee.setMatricule(request.matricule().trim());
+        employee.setFullName(request.fullName().trim());
+        employee.setQualification(request.qualification().trim());
+        employee.setContractType(request.contractType());
         employee.setHourlyCost(request.hourlyCost());
-        employee.setStatus(request.status() == null ? EmployeeStatus.ACTIVE : request.status());
+        employee.setStatus(request.status());
+    }
+
+    private EmployeeCostHistory newCostHistory(Employee employee, BigDecimal hourlyCost, LocalDate effectiveDate) {
+        EmployeeCostHistory history = new EmployeeCostHistory();
+        history.setEmployee(employee);
+        history.setHourlyCost(hourlyCost);
+        history.setEffectiveDate(effectiveDate);
+        return history;
     }
 
     private EmployeeResponse toResponse(Employee employee) {
         return new EmployeeResponse(
                 employee.getId(),
-                employee.getRegistrationNumber(),
+                employee.getMatricule(),
                 employee.getFullName(),
                 employee.getQualification(),
                 employee.getContractType(),
@@ -102,5 +148,28 @@ public class EmployeeService {
                 employee.getStatus(),
                 employee.getCreatedAt(),
                 employee.getUpdatedAt());
+    }
+
+    private EmployeeDetailResponse toDetailResponse(Employee employee, List<EmployeeCostHistory> history) {
+        return new EmployeeDetailResponse(
+                employee.getId(),
+                employee.getMatricule(),
+                employee.getFullName(),
+                employee.getQualification(),
+                employee.getContractType(),
+                employee.getHourlyCost(),
+                employee.getStatus(),
+                employee.getCreatedAt(),
+                employee.getUpdatedAt(),
+                history.stream().map(this::toCostHistoryResponse).toList());
+    }
+
+    private EmployeeCostHistoryResponse toCostHistoryResponse(EmployeeCostHistory history) {
+        return new EmployeeCostHistoryResponse(
+                history.getId(),
+                history.getEmployee().getId(),
+                history.getHourlyCost(),
+                history.getEffectiveDate(),
+                history.getCreatedAt());
     }
 }

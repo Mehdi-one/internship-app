@@ -26,6 +26,8 @@ export class EquipmentCreateComponent {
     fuelConsumption: 0,
     maintenanceCost: 0,
     insuranceCost: 0,
+    nextMaintenanceDate: undefined,
+    insuranceExpiryDate: undefined,
     status: 'AVAILABLE',
   };
 
@@ -55,7 +57,8 @@ export class EquipmentCreateComponent {
     return {
       ...this.equipment,
       acquisitionCost: Number(this.equipment.acquisitionCost || 0),
-      usageCost: Number(this.equipment.usageCost),
+      usageCostType: this.equipment.usageCostType,
+      usageCost: Number(this.equipment.usageCost || 0),
       fuelConsumption: Number(this.equipment.fuelConsumption || 0),
       maintenanceCost: Number(this.equipment.maintenanceCost || 0),
       insuranceCost: Number(this.equipment.insuranceCost || 0),

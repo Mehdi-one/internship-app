@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import com.example.internshipapp.common.enums.ExpenseCategory;
 import com.example.internshipapp.common.enums.ExpenseStatus;
+import com.example.internshipapp.common.enums.ExpenseType;
 import com.example.internshipapp.project.Project;
 import com.example.internshipapp.project.ProjectLot;
 
@@ -42,6 +43,9 @@ public class Expense {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ExpenseCategory category;
+
+    @Enumerated(EnumType.STRING)
+    private ExpenseType expenseType;
 
     private String description;
 
@@ -113,6 +117,14 @@ public class Expense {
 
     public void setCategory(ExpenseCategory category) {
         this.category = category;
+    }
+
+    public ExpenseType getExpenseType() {
+        return expenseType;
+    }
+
+    public void setExpenseType(ExpenseType expenseType) {
+        this.expenseType = expenseType;
     }
 
     public String getDescription() {

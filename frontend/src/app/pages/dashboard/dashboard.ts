@@ -3,9 +3,11 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 
-import { Employee, Equipment, Project, ProjectSummary } from '../../models/business.models';
+import { Equipment, Project, ProjectSummary } from '../../models/business.models';
+import { Employee } from '../../models/employee.model';
 import { LabelFrPipe } from '../../pipes/label-fr.pipe';
 import { ApiService } from '../../services/api.service';
+import { EmployeeService } from '../../services/employee.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,6 +16,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class DashboardComponent implements OnInit {
   private readonly apiService = inject(ApiService);
+  private readonly employeeService = inject(EmployeeService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   message = '';
@@ -35,13 +38,13 @@ export class DashboardComponent implements OnInit {
 
     forkJoin({
       projects: this.apiService.getProjects(),
-      employees: this.apiService.getEmployees(),
+      employees: this.employeeService.getEmployees(),
       equipment: this.apiService.getEquipment(),
     })
       .pipe(
         switchMap(({ projects, employees, equipment }) => {
           this.totalProjects = projects.length;
-          this.totalBudget = projects.reduce((total, project) => total + Number(project.estimatedBudget || 0), 0);
+          this.totalBudget = projects.reduce((total, project) => total + Number(project.estimatedDryCost || 0), 0);
           this.activeEmployees = employees.filter((employee) => employee.status === 'ACTIVE').length;
           this.availableEquipment = equipment.filter((item) => item.status === 'AVAILABLE').length;
           this.recentProjects = projects.slice(0, 5);

@@ -1,34 +1,76 @@
-<section class="panel">
-  <h2>Synthese financiere</h2>
+<section class="panel financial-summary">
+  <header class="financial-summary-header">
+    <h2>Synthèse financière</h2>
+    @if (summary?.margeBrute != null) {
+      <span class="margin-badge">Taux de marge {{ summary?.tauxMarge }}%</span>
+    }
+  </header>
 
   @if (summary) {
-    <dl class="summary-grid">
-      <div>
-        <dt>Montant HT</dt>
-        <dd class="money">{{ summary.amountHT }} DHS</dd>
+    <div class="financial-primary-grid">
+      <article class="financial-card">
+        <span>Budget prévisionnel</span>
+        <strong>{{ formatMoney(summary.budgetPrevisionnel) }} DHS</strong>
+      </article>
+
+      <article class="financial-card financial-card-warning">
+        <span>Déboursé total</span>
+        <strong>{{ formatMoney(summary.debourseTotal) }} DHS</strong>
+      </article>
+
+      @if (summary.margeBrute != null) {
+        <article class="financial-card financial-card-accent">
+          <span>Montant adjugé HT</span>
+          <strong>{{ formatMoney(summary.montantHT) }} DHS</strong>
+        </article>
+        <article class="financial-card">
+          <span>Marge brute</span>
+          <strong>{{ formatMoney(summary.margeBrute) }} DHS</strong>
+        </article>
+      }
+    </div>
+
+    <div class="financial-cost-grid">
+      <article class="financial-card financial-card-compact">
+        <span>Dépenses directes</span>
+        <strong>{{ formatMoney(summary.debourseDepenses) }} DHS</strong>
+      </article>
+      <article class="financial-card financial-card-compact">
+        <span>Main-d'œuvre</span>
+        <strong>{{ formatMoney(summary.debourseMainOeuvre) }} DHS</strong>
+      </article>
+      <article class="financial-card financial-card-compact">
+        <span>Parc matériel</span>
+        <strong>{{ formatMoney(summary.debourseParc) }} DHS</strong>
+      </article>
+    </div>
+
+    @if (summary.budgetCritique) {
+      <div class="alert-banner alert-danger">🔴 Budget dépassé — {{ summary.consommationBudget }}% consommé.</div>
+    } @else if (summary.budgetAlert) {
+      <div class="alert-banner alert-warning">⚠ Attention — {{ summary.consommationBudget }}% du budget consommé. Seuil d'alerte à {{ summary.alerteSeuil }}%.</div>
+    }
+
+    <div class="budget-progress-card">
+      <div class="budget-progress-heading">
+        <span>Consommation du budget</span>
+        <strong>{{ summary.consommationBudget }}% du budget consommé</strong>
       </div>
-      <div>
-        <dt>Budget estime</dt>
-        <dd class="money">{{ summary.estimatedBudget }} DHS</dd>
+      <div
+        class="budget-progress-track budget-progress-{{ budgetProgressClass }}"
+        role="progressbar"
+        aria-label="Consommation du budget"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="summary.consommationBudget">
+        <span [style.width.%]="budgetConsumptionProgress"></span>
       </div>
-      <div>
-        <dt>Total des depenses</dt>
-        <dd class="money">{{ summary.totalExpenses }} DHS</dd>
+      <div class="budget-progress-meta">
+        <span>Déboursé : {{ formatMoney(summary.debourseTotal) }} DHS</span>
+        <span>Budget : {{ formatMoney(summary.budgetPrevisionnel) }} DHS</span>
       </div>
-      <div>
-        <dt>Marge</dt>
-        <dd class="money">{{ summary.margin }} DHS</dd>
-      </div>
-      <div>
-        <dt>Taux de marge</dt>
-        <dd>{{ summary.marginRate }}%</dd>
-      </div>
-      <div>
-        <dt>Consommation du budget</dt>
-        <dd>{{ summary.budgetConsumptionRate }}%</dd>
-      </div>
-    </dl>
+    </div>
   } @else {
-    <p>Aucune synthese chargee.</p>
+    <p>Aucune synthèse chargée.</p>
   }
 </section>

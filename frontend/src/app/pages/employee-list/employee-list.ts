@@ -2,9 +2,10 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { Employee, EmployeeFilters, EmployeeStatus } from '../../models/business.models';
+import { Employee, EmployeeFilters, EmployeeStatus } from '../../models/employee.model';
 import { LabelFrPipe } from '../../pipes/label-fr.pipe';
-import { ApiService } from '../../services/api.service';
+import { AuthorizationService } from '../../services/authorization.service';
+import { EmployeeService } from '../../services/employee.service';
 
 @Component({
   selector: 'app-employee-list',
@@ -12,8 +13,9 @@ import { ApiService } from '../../services/api.service';
   templateUrl: './employee-list.html',
 })
 export class EmployeeListComponent implements OnInit {
-  private readonly apiService = inject(ApiService);
+  private readonly employeeService = inject(EmployeeService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  readonly authorization = inject(AuthorizationService);
 
   employees: Employee[] = [];
   message = '';
@@ -30,7 +32,7 @@ export class EmployeeListComponent implements OnInit {
   loadEmployees() {
     this.message = 'Chargement des salaries...';
 
-    this.apiService.getEmployees(this.filters).subscribe({
+    this.employeeService.getEmployees(this.filters).subscribe({
       next: (employees) => {
         this.employees = employees;
         this.message = employees.length === 0 ? 'Aucun salarie pour le moment.' : '';
@@ -47,7 +49,7 @@ export class EmployeeListComponent implements OnInit {
   deactivateEmployee(id: number) {
     this.message = 'Desactivation du salarie...';
 
-    this.apiService.deactivateEmployee(id).subscribe({
+    this.employeeService.deactivateEmployee(id).subscribe({
       next: () => {
         this.message = 'Salarie desactive.';
         this.loadEmployees();

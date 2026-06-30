@@ -16,6 +16,7 @@ import com.example.internshipapp.common.enums.ProjectStatus;
 import com.example.internshipapp.project.dto.ProjectRequest;
 import com.example.internshipapp.project.dto.ProjectResponse;
 import com.example.internshipapp.project.dto.ProjectSummaryResponse;
+import com.example.internshipapp.project.dto.FinancialSummaryResponse;
 
 import jakarta.validation.Valid;
 
@@ -64,5 +65,10 @@ public class ProjectController {
     @GetMapping("/{id}/summary")
     public ProjectSummaryResponse getSummary(@PathVariable Long id) {
         return projectService.getSummary(id);
+    }
+
+    @GetMapping("/{id}/financial-summary")
+    public FinancialSummaryResponse getFinancialSummary(@PathVariable Long id) {
+        return projectService.getFinancialSummary(id);
     }
 }

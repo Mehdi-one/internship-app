@@ -23,8 +23,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             select p from Project p
             where lower(p.reference) like lower(concat('%', :search, '%'))
                or lower(p.title) like lower(concat('%', :search, '%'))
-               or lower(coalesce(p.clientName, '')) like lower(concat('%', :search, '%'))
-               or lower(coalesce(p.responsibleName, '')) like lower(concat('%', :search, '%'))
+               or lower(coalesce(p.contractingAuthority, '')) like lower(concat('%', :search, '%'))
+               or lower(coalesce(p.responsibleUserReference, '')) like lower(concat('%', :search, '%'))
             order by p.updatedAt desc
             """)
     List<Project> search(@Param("search") String search);
@@ -34,8 +34,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             where p.status = :status
               and (lower(p.reference) like lower(concat('%', :search, '%'))
                    or lower(p.title) like lower(concat('%', :search, '%'))
-                   or lower(coalesce(p.clientName, '')) like lower(concat('%', :search, '%'))
-                   or lower(coalesce(p.responsibleName, '')) like lower(concat('%', :search, '%')))
+                   or lower(coalesce(p.contractingAuthority, '')) like lower(concat('%', :search, '%'))
+                   or lower(coalesce(p.responsibleUserReference, '')) like lower(concat('%', :search, '%')))
             order by p.updatedAt desc
             """)
     List<Project> searchByStatus(@Param("search") String search, @Param("status") ProjectStatus status);

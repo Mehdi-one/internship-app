@@ -11,9 +11,9 @@ import com.example.internshipapp.common.enums.EmployeeStatus;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    boolean existsByRegistrationNumber(String registrationNumber);
+    boolean existsByMatricule(String matricule);
 
-    Optional<Employee> findByRegistrationNumber(String registrationNumber);
+    Optional<Employee> findByMatricule(String matricule);
 
     List<Employee> findAllByOrderByUpdatedAtDesc();
 
@@ -21,7 +21,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     @Query("""
             select e from Employee e
-            where lower(e.registrationNumber) like lower(concat('%', :search, '%'))
+            where lower(e.matricule) like lower(concat('%', :search, '%'))
                or lower(e.fullName) like lower(concat('%', :search, '%'))
                or lower(e.qualification) like lower(concat('%', :search, '%'))
             order by e.updatedAt desc
@@ -31,7 +31,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("""
             select e from Employee e
             where e.status = :status
-              and (lower(e.registrationNumber) like lower(concat('%', :search, '%'))
+              and (lower(e.matricule) like lower(concat('%', :search, '%'))
                    or lower(e.fullName) like lower(concat('%', :search, '%'))
                    or lower(e.qualification) like lower(concat('%', :search, '%')))
             order by e.updatedAt desc

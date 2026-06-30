@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.internshipapp.common.enums.EquipmentStatus;
 import com.example.internshipapp.equipment.dto.EquipmentRequest;
 import com.example.internshipapp.equipment.dto.EquipmentResponse;
+import com.example.internshipapp.equipment.dto.FuelLogRequest;
+import com.example.internshipapp.equipment.dto.FuelLogResponse;
 
 import jakarta.validation.Valid;
 
@@ -23,9 +25,11 @@ import jakarta.validation.Valid;
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
+    private final FuelLogService fuelLogService;
 
-    public EquipmentController(EquipmentService equipmentService) {
+    public EquipmentController(EquipmentService equipmentService, FuelLogService fuelLogService) {
         this.equipmentService = equipmentService;
+        this.fuelLogService = fuelLogService;
     }
 
     @PostMapping
@@ -53,5 +57,17 @@ public class EquipmentController {
     @PatchMapping("/{id}/reform")
     public EquipmentResponse reform(@PathVariable Long id) {
         return equipmentService.reform(id);
+    }
+
+    @PostMapping("/{id}/fuel-logs")
+    public FuelLogResponse addFuelLog(
+            @PathVariable Long id,
+            @Valid @RequestBody FuelLogRequest request) {
+        return fuelLogService.addFuelLog(id, request);
+    }
+
+    @GetMapping("/{id}/fuel-logs")
+    public List<FuelLogResponse> getFuelLogs(@PathVariable Long id) {
+        return fuelLogService.getFuelLogs(id);
     }
 }

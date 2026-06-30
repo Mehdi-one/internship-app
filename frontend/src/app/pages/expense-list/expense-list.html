@@ -1,0 +1,116 @@
+<section class="page-header">
+  <div>
+    <h1>Depenses</h1>
+    <p>Consulter et controler les depenses enregistrees sur les marches.</p>
+  </div>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+<section class="panel filter-panel">
+  <div class="section-heading compact-heading">
+    <div>
+      <h2>Filtres</h2>
+      <p>Rechercher par marche, description, fournisseur ou numero de piece.</p>
+    </div>
+  </div>
+
+  <div class="form-grid">
+    <label>
+      Recherche
+      <input name="search" placeholder="Marche, description, fournisseur, numero de piece..." [(ngModel)]="filters.search" />
+    </label>
+
+    <label>
+      Categorie
+      <select name="category" [(ngModel)]="filters.category">
+        <option value="">Toutes les categories</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category | labelFr }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      État
+      <select name="status" [(ngModel)]="filters.status">
+        <option value="">Tous les statuts</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status | labelFr }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="form-actions full-row">
+      <button type="button" (click)="loadExpenses()">Appliquer les filtres</button>
+    </div>
+  </div>
+</section>
+
+@if (expenses.length > 0) {
+  <section class="table-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Liste des depenses</h2>
+        <p>{{ expenses.length }} depense(s) affichee(s)</p>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Marche</th>
+          <th>Categorie</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Fournisseur</th>
+          <th>N° pièce</th>
+          <th>Pièce jointe</th>
+          <th>Montant HT</th>
+          <th>État</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (expense of expenses; track expense.id) {
+          <tr>
+            <td>{{ expense.expenseDate || '-' }}</td>
+            <td>
+              <a class="table-link" [routerLink]="['/projects', expense.projectId]">{{ expense.projectReference }}</a>
+              <small class="table-secondary">{{ expense.projectTitle }}</small>
+            </td>
+            <td>{{ expense.category | labelFr }}</td>
+            <td>{{ expense.expenseType | labelFr }}</td>
+            <td>{{ expense.description || '-' }}</td>
+            <td>{{ expense.supplierName || '-' }}</td>
+            <td>{{ expense.invoiceNumber || '-' }}</td>
+            <td>
+              @if (expense.documents.length > 0) {
+                <div class="document-list">
+                  @for (document of expense.documents; track document.id) {
+                    <button class="document-link" type="button" (click)="downloadExpenseDocument(document)">
+                      {{ document.documentType | labelFr }} - {{ document.originalFileName }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <span class="muted-text">Aucun</span>
+              }
+            </td>
+            <td class="money">{{ formatMoney(expense.amountHT) }} DHS</td>
+            <td><span class="status-badge status-{{ expense.status.toLowerCase() }}">{{ expense.status | labelFr }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+  </section>
+} @else if (!message) {
+  <section class="empty-state">
+    <h2>Aucune depense trouvee</h2>
+    <p>Modifier les filtres ou ajouter une depense depuis un marche.</p>
+  </section>
+}

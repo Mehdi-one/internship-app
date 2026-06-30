@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Equipment, EquipmentFilters, EquipmentStatus } from '../../models/business.models';
 import { LabelFrPipe } from '../../pipes/label-fr.pipe';
 import { ApiService } from '../../services/api.service';
+import { AuthorizationService } from '../../services/authorization.service';
 
 @Component({
   selector: 'app-equipment-list',
@@ -14,6 +15,7 @@ import { ApiService } from '../../services/api.service';
 export class EquipmentListComponent implements OnInit {
   private readonly apiService = inject(ApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  readonly authorization = inject(AuthorizationService);
 
   equipment: Equipment[] = [];
   message = '';

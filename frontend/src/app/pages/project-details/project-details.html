@@ -5,7 +5,7 @@
   </div>
   <div class="form-actions">
     <a routerLink="/projects" class="button-link secondary">Retour</a>
-    @if (project) {
+    @if (project && authorization.canManageProjects()) {
       <a [routerLink]="['/projects', project.id, 'edit']" class="button-link">Modifier le marche</a>
     }
   </div>
@@ -32,7 +32,7 @@
   <section class="panel details-grid">
     <div>
       <strong>Maitre d'ouvrage</strong>
-      <span>{{ project.clientName || '-' }}</span>
+      <span>{{ project.contractingAuthority }}</span>
     </div>
     <div>
       <strong>Type de marche</strong>
@@ -51,32 +51,315 @@
       <span>{{ project.tvaRate ?? '-' }}%</span>
     </div>
     <div>
-      <strong>Responsable</strong>
-      <span>{{ project.responsibleName || '-' }}</span>
+      <strong>Responsable (conducteur)</strong>
+      <span>{{ project.responsibleUserReference }}</span>
     </div>
     <div>
-      <strong>Date debut</strong>
-      <span>{{ project.startDate || '-' }}</span>
+      <strong>Date de notification / OS</strong>
+      <span>{{ project.notificationOrderDate || '-' }}</span>
     </div>
     <div>
-      <strong>Date fin</strong>
-      <span>{{ project.endDate || '-' }}</span>
+      <strong>Date de fin previsionnelle</strong>
+      <span>{{ project.plannedEndDate || '-' }}</span>
     </div>
     <div>
       <strong>Delai d'execution</strong>
       <span>{{ project.executionDelayDays || '-' }} jours</span>
     </div>
+    @if (authorization.canCloseOrArchiveProjects()) {
     <div class="form-actions full-row">
       <button type="button" (click)="closeProject()" [disabled]="project.status === 'CLOSED' || project.archived">Cloturer le marche</button>
-      <button class="secondary-button" type="button" (click)="archiveProject()" [disabled]="project.archived">Archiver le marche</button>
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="archiveProject()"
+        [disabled]="project.status !== 'CLOSED' || project.archived"
+        [title]="project.status !== 'CLOSED' ? 'Le marche doit etre cloture avant son archivage' : ''">
+        Archiver le marche
+      </button>
     </div>
+    }
   </section>
 
   <app-project-summary [summary]="summary"></app-project-summary>
 
+  <nav class="project-workspace-tabs" aria-label="Sections du marche" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeProjectTab === 'employees'"
+      [attr.aria-selected]="activeProjectTab === 'employees'"
+      (click)="activeProjectTab = 'employees'">
+      Pointage salaries
+      <span>{{ employeeAssignments.length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeProjectTab === 'equipment'"
+      [attr.aria-selected]="activeProjectTab === 'equipment'"
+      (click)="activeProjectTab = 'equipment'">
+      Pointage materiel
+      <span>{{ equipmentAssignments.length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeProjectTab === 'lots'"
+      [attr.aria-selected]="activeProjectTab === 'lots'"
+      (click)="activeProjectTab = 'lots'">
+      Lots / postes
+      <span>{{ lots.length }}</span>
+    </button>
+    <button
+      type="button"
+      role="tab"
+      [class.active]="activeProjectTab === 'expenses'"
+      [attr.aria-selected]="activeProjectTab === 'expenses'"
+      (click)="activeProjectTab = 'expenses'">
+      Depenses
+      <span>{{ expenses.length }}</span>
+    </button>
+  </nav>
+
+  @if (activeProjectTab === 'employees') {
+  <section class="panel">
+    <div class="section-title-row">
+      <div>
+        <h2>Pointage salaries</h2>
+        <p>Imputer le cout de main d'oeuvre sur ce marche.</p>
+      </div>
+    </div>
+
+    @if (authorization.canManagePointages()) {
+    <form #employeeAssignmentForm="ngForm" class="form-grid pointage-form" novalidate (ngSubmit)="saveEmployeeAssignment(employeeAssignmentForm)">
+      <label [class.invalid]="employeeAssignmentForm.submitted && employeeId.invalid">
+        Salarie <span class="required-marker">*</span>
+        <select #employeeId="ngModel" name="employeeId" required [(ngModel)]="employeeAssignment.employeeId">
+          <option [ngValue]="undefined">Selectionner un salarie</option>
+          @for (employee of employees; track employee.id) {
+            <option [ngValue]="employee.id">{{ employee.fullName }} — {{ employee.qualification }} — {{ employee.hourlyCost }} DHS/h</option>
+          }
+        </select>
+        @if (employeeAssignmentForm.submitted && employeeId.invalid) {
+          <span class="field-error">Le salarie est obligatoire.</span>
+        }
+      </label>
+
+      <label [class.invalid]="(employeeAssignmentForm.submitted && employeeAssignmentDate.invalid) || isPointageDateOutsideProject(employeeAssignment.assignmentDate)">
+        Date de pointage <span class="required-marker">*</span>
+        <input
+          #employeeAssignmentDate="ngModel"
+          name="employeeAssignmentDate"
+          type="date"
+          required
+          [attr.min]="project.notificationOrderDate || null"
+          [attr.max]="project.plannedEndDate || null"
+          [(ngModel)]="employeeAssignment.assignmentDate" />
+        @if (employeeAssignmentForm.submitted && employeeAssignmentDate.invalid) {
+          <span class="field-error">La date est obligatoire.</span>
+        }
+        @if (isPointageDateOutsideProject(employeeAssignment.assignmentDate)) {
+          <span class="field-error">La date doit etre dans la periode du marche.</span>
+        }
+      </label>
+
+      <label [class.invalid]="employeeAssignmentForm.submitted && hours.invalid">
+        Heures travaillees <span class="required-marker">*</span>
+        <input #hours="ngModel" name="hours" type="number" min="0.01" step="0.01" required [(ngModel)]="employeeAssignment.hours" />
+        @if (employeeAssignmentForm.submitted && hours.invalid) {
+          <span class="field-error">Le nombre dheures doit etre superieur a 0.</span>
+        }
+      </label>
+
+      <div class="form-actions full-row">
+        <button type="submit" [disabled]="project.status !== 'IN_PROGRESS' || project.archived">
+          {{ editingEmployeeAssignmentId ? 'Enregistrer le pointage' : 'Ajouter pointage salarie' }}
+        </button>
+        @if (editingEmployeeAssignmentId) {
+          <button class="secondary-button" type="button" (click)="cancelEmployeeAssignmentEdit(employeeAssignmentForm)">Annuler la modification</button>
+        }
+      </div>
+    </form>
+    }
+
+    @if (employeeAssignments.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Salarie</th>
+            <th>Heures</th>
+            <th>Cout horaire</th>
+            <th>Total</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (assignment of employeeAssignments; track assignment.id) {
+            <tr>
+              <td>{{ assignment.assignmentDate || '-' }}</td>
+              <td>{{ assignment.employeeName }}</td>
+              <td>{{ assignment.hours }}</td>
+              <td class="money">{{ assignment.hourlyCostSnapshot }} DHS/h</td>
+              <td class="money">{{ assignment.totalCost }} DHS</td>
+              <td><span class="status-badge status-{{ assignment.status.toLowerCase() }}">{{ assignment.status | labelFr }}</span></td>
+              <td>
+                @if (authorization.canManagePointages() && assignment.status === 'DRAFT') {
+                  <button class="secondary-button" type="button" (click)="startEmployeeAssignmentEdit(assignment)">Modifier</button>
+                  <button class="secondary-button" type="button" (click)="validateEmployeeAssignment(assignment.id)">Valider</button>
+                  <button class="secondary-button" type="button" (click)="cancelEmployeeAssignment(assignment.id)">Annuler</button>
+                } @else if (authorization.canManagePointages() && assignment.status === 'VALIDATED') {
+                  <button class="secondary-button" type="button" (click)="cancelEmployeeAssignment(assignment.id)">Annuler</button>
+                } @else {
+                  <span class="muted-text">Aucune action</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>Aucun pointage salarie pour le moment.</p>
+    }
+  </section>
+  }
+
+  @if (activeProjectTab === 'equipment') {
+  <section class="panel">
+    <div class="section-title-row">
+      <div>
+        <h2>Pointage materiel</h2>
+        <p>Imputer le cout d'usage du materiel et les frais reels sur ce marche.</p>
+      </div>
+    </div>
+
+    @if (authorization.canManagePointages()) {
+    <form #equipmentAssignmentForm="ngForm" class="form-grid pointage-form" novalidate (ngSubmit)="saveEquipmentAssignment(equipmentAssignmentForm)">
+      <label [class.invalid]="equipmentAssignmentForm.submitted && equipmentId.invalid">
+        Materiel <span class="required-marker">*</span>
+        <select #equipmentId="ngModel" name="equipmentId" required [(ngModel)]="equipmentAssignment.equipmentId">
+          <option [ngValue]="undefined">Selectionner un materiel</option>
+          @for (item of equipment; track item.id) {
+            <option [ngValue]="item.id" [disabled]="item.status === 'MAINTENANCE' || item.status === 'REFORMED'">
+              {{ item.reference }} - {{ item.brandModel }} - {{ item.usageCost }} DHS/{{ item.usageCostType === 'DAILY' ? 'jour' : 'h' }}
+            </option>
+          }
+        </select>
+        @if (equipmentAssignmentForm.submitted && equipmentId.invalid) {
+          <span class="field-error">Le materiel est obligatoire.</span>
+        }
+      </label>
+
+      <label [class.invalid]="(equipmentAssignmentForm.submitted && equipmentAssignmentDate.invalid) || isPointageDateOutsideProject(equipmentAssignment.assignmentDate)">
+        Date de pointage <span class="required-marker">*</span>
+        <input
+          #equipmentAssignmentDate="ngModel"
+          name="equipmentAssignmentDate"
+          type="date"
+          required
+          [attr.min]="project.notificationOrderDate || null"
+          [attr.max]="project.plannedEndDate || null"
+          [(ngModel)]="equipmentAssignment.assignmentDate" />
+        @if (equipmentAssignmentForm.submitted && equipmentAssignmentDate.invalid) {
+          <span class="field-error">La date est obligatoire.</span>
+        }
+        @if (isPointageDateOutsideProject(equipmentAssignment.assignmentDate)) {
+          <span class="field-error">La date doit etre dans la periode du marche.</span>
+        }
+      </label>
+
+      <label [class.invalid]="equipmentAssignmentForm.submitted && usageQuantity.invalid">
+        {{ selectedEquipmentUsageType === 'DAILY' ? 'Nombre de jours' : "Nombre d'heures" }} <span class="required-marker">*</span>
+        <input #usageQuantity="ngModel" name="usageQuantity" type="number" min="0.01" step="0.01" required [(ngModel)]="equipmentAssignment.usageQuantity" />
+        @if (equipmentAssignmentForm.submitted && usageQuantity.invalid) {
+          <span class="field-error">La quantite doit etre superieure a 0.</span>
+        }
+      </label>
+
+      <label>
+        Carburant impute
+        <input name="fuelCost" type="number" min="0" step="0.01" [(ngModel)]="equipmentAssignment.fuelCost" />
+      </label>
+
+      <label>
+        Entretien / reparation impute
+        <input name="maintenanceCost" type="number" min="0" step="0.01" [(ngModel)]="equipmentAssignment.maintenanceCost" />
+      </label>
+
+      <label>
+        Transport materiel
+        <input name="transportCost" type="number" min="0" step="0.01" [(ngModel)]="equipmentAssignment.transportCost" />
+      </label>
+
+      <div class="form-actions full-row">
+        <button type="submit" [disabled]="project.status !== 'IN_PROGRESS' || project.archived">
+          {{ editingEquipmentAssignmentId ? 'Enregistrer le pointage' : 'Ajouter pointage materiel' }}
+        </button>
+        @if (editingEquipmentAssignmentId) {
+          <button class="secondary-button" type="button" (click)="cancelEquipmentAssignmentEdit(equipmentAssignmentForm)">Annuler la modification</button>
+        }
+      </div>
+    </form>
+    }
+
+    @if (equipmentAssignments.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Materiel</th>
+            <th>Usage</th>
+            <th>Tarif applique</th>
+            <th>Cout d'usage</th>
+            <th>Carburant</th>
+            <th>Entretien</th>
+            <th>Transport</th>
+            <th>Cout total</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (assignment of equipmentAssignments; track assignment.id) {
+            <tr>
+              <td>{{ assignment.assignmentDate || '-' }}</td>
+              <td>{{ assignment.equipmentReference }} - {{ assignment.equipmentName }}</td>
+              <td>{{ assignment.usageQuantity }} {{ assignment.usageCostType === 'DAILY' ? 'jour' : 'h' }}</td>
+              <td class="money">{{ assignment.usageCostSnapshot }} DHS/{{ assignment.usageCostType === 'DAILY' ? 'jour' : 'h' }}</td>
+              <td class="money">{{ assignment.usageQuantity * assignment.usageCostSnapshot }} DHS</td>
+              <td class="money">{{ assignment.fuelCost }} DHS</td>
+              <td class="money">{{ assignment.maintenanceCost }} DHS</td>
+              <td class="money">{{ assignment.transportCost }} DHS</td>
+              <td class="money">{{ assignment.totalCost }} DHS</td>
+              <td><span class="status-badge status-{{ assignment.status.toLowerCase() }}">{{ assignment.status | labelFr }}</span></td>
+              <td>
+                @if (authorization.canManagePointages() && assignment.status === 'DRAFT') {
+                  <button class="secondary-button" type="button" (click)="startEquipmentAssignmentEdit(assignment)">Modifier</button>
+                  <button class="secondary-button" type="button" (click)="validateEquipmentAssignment(assignment.id)">Valider</button>
+                  <button class="secondary-button" type="button" (click)="cancelEquipmentAssignment(assignment.id)">Annuler</button>
+                } @else if (authorization.canManagePointages() && assignment.status === 'VALIDATED') {
+                  <button class="secondary-button" type="button" (click)="cancelEquipmentAssignment(assignment.id)">Annuler</button>
+                } @else {
+                  <span class="muted-text">Aucune action</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p>Aucun pointage materiel pour le moment.</p>
+    }
+  </section>
+  }
+
+  @if (activeProjectTab === 'lots') {
   <section class="panel">
     <h2>Lots / postes du marche</h2>
 
+    @if (authorization.canManageProjects()) {
     <form #lotForm="ngForm" class="form-grid" novalidate (ngSubmit)="addLot(lotForm)">
       <label [class.invalid]="lotForm.submitted && designation.invalid">
         Designation <span class="required-marker">*</span>
@@ -86,28 +369,32 @@
         }
       </label>
 
-      <label>
-        Quantite
-        <input name="quantity" type="number" min="0" step="0.01" [(ngModel)]="lot.quantity" />
-      </label>
-
-      <label>
-        Prix unitaire
-        <input name="unitPrice" type="number" min="0" step="0.01" [(ngModel)]="lot.unitPrice" />
-      </label>
-
-      <label [class.invalid]="lotForm.submitted && plannedAmount.invalid">
-        Montant prevu <span class="required-marker">*</span>
-        <input #plannedAmount="ngModel" name="plannedAmount" type="number" min="0.01" step="0.01" required [(ngModel)]="lot.plannedAmount" />
-        @if (lotForm.submitted && plannedAmount.invalid) {
-          <span class="field-error">Le montant prevu doit etre superieur a 0.</span>
+      <label [class.invalid]="lotForm.submitted && quantity.invalid">
+        Quantite <span class="required-marker">*</span>
+        <input #quantity="ngModel" name="quantity" type="number" min="0.01" step="0.01" required [(ngModel)]="lot.quantity" />
+        @if (lotForm.submitted && quantity.invalid) {
+          <span class="field-error">La quantite doit etre superieure a 0.</span>
         }
+      </label>
+
+      <label [class.invalid]="lotForm.submitted && unitPrice.invalid">
+        Prix unitaire <span class="required-marker">*</span>
+        <input #unitPrice="ngModel" name="unitPrice" type="number" min="0.01" step="0.01" required [(ngModel)]="lot.unitPrice" />
+        @if (lotForm.submitted && unitPrice.invalid) {
+          <span class="field-error">Le prix unitaire doit etre superieur a 0.</span>
+        }
+      </label>
+
+      <label>
+        Montant prevu
+        <input type="number" [value]="calculatedLotPlannedAmount" readonly />
       </label>
 
       <div class="form-actions full-row">
         <button type="submit">Ajouter lot/poste</button>
       </div>
     </form>
+    }
 
     @if (lots.length > 0) {
       <table>
@@ -130,9 +417,11 @@
               <td class="money">{{ lotItem.plannedAmount }} DHS</td>
               <td><span class="status-badge status-{{ lotItem.archived ? 'archived' : 'active' }}">{{ lotItem.archived ? 'Archive' : 'Non archive' }}</span></td>
               <td>
+                @if (authorization.canManageProjects()) {
                 <button class="secondary-button" type="button" (click)="archiveLot(lotItem.id)" [disabled]="lotItem.archived">
                   Archiver
                 </button>
+                }
               </td>
             </tr>
           }
@@ -142,17 +431,24 @@
       <p>Aucun lot/poste pour le moment.</p>
     }
   </section>
+  }
 
+  @if (activeProjectTab === 'expenses') {
+  @if (authorization.canManageExpenses()) {
   <section class="panel">
     <h2>Ajouter une depense</h2>
     <app-expense-form
       [projectLots]="lots"
+      [projectLabel]="project.reference + ' - ' + project.title"
+      [projectStartDate]="project.notificationOrderDate"
+      [projectEndDate]="project.plannedEndDate"
       submitLabel="Ajouter la depense"
       (expenseCreated)="addExpense($event)">
     </app-expense-form>
   </section>
+  }
 
-  @if (editingExpense) {
+  @if (authorization.canManageExpenses() && editingExpense) {
     <section class="panel">
       <div class="section-title-row">
         <h2>Modifier la depense</h2>
@@ -160,7 +456,10 @@
       </div>
       <app-expense-form
         [projectLots]="lots"
+        [projectLabel]="project.reference + ' - ' + project.title"
         [initialExpense]="editingExpense"
+        [projectStartDate]="project.notificationOrderDate"
+        [projectEndDate]="project.plannedEndDate"
         submitLabel="Enregistrer la depense"
         (expenseCreated)="updateExpense($event)">
       </app-expense-form>
@@ -171,18 +470,21 @@
     <h2>Depenses</h2>
 
     @if (expenses.length > 0) {
+      <div class="table-scroll">
       <table>
         <thead>
           <tr>
             <th>Date</th>
             <th>Lot / poste</th>
-            <th>Categorie</th>
+            <th>Catégorie</th>
+            <th>Type de dépense</th>
             <th>Description</th>
             <th>Montant HT</th>
             <th>TVA</th>
             <th>Fournisseur</th>
-            <th>Facture</th>
-            <th>Statut</th>
+            <th>N° pièce</th>
+            <th>Pièce jointe</th>
+            <th>État</th>
             <th></th>
           </tr>
         </thead>
@@ -192,26 +494,94 @@
               <td>{{ expense.expenseDate || '-' }}</td>
               <td>{{ expense.projectLotDesignation || '-' }}</td>
               <td>{{ expense.category | labelFr }}</td>
+              <td>{{ expense.expenseType | labelFr }}</td>
               <td>{{ expense.description || '-' }}</td>
               <td class="money">{{ expense.amountHT }} DHS</td>
               <td>{{ expense.tvaRate ?? '-' }}%</td>
               <td>{{ expense.supplierName || '-' }}</td>
               <td>{{ expense.invoiceNumber || '-' }}</td>
+              <td>
+                <div class="document-cell">
+                  @if (expense.documents.length > 0) {
+                    <div class="document-list">
+                    @for (document of expense.documents; track document.id) {
+                      <button class="document-link" type="button" (click)="downloadExpenseDocument(document)">
+                        {{ document.documentType | labelFr }} - {{ document.originalFileName }}
+                      </button>
+                    }
+                    </div>
+                  } @else {
+                    <span class="muted-text">Aucun</span>
+                  }
+                  @if (authorization.canManageExpenses() && expense.status !== 'CANCELLED' && expense.documents.length === 0) {
+                    <button class="secondary-button document-action" type="button" (click)="startDocumentUpload(expense.id)">
+                      Ajouter un justificatif
+                    </button>
+                  }
+                </div>
+              </td>
               <td><span class="status-badge status-{{ expense.status.toLowerCase() }}">{{ expense.status | labelFr }}</span></td>
               <td>
-                <button class="secondary-button" type="button" (click)="startEditExpense(expense)" [disabled]="expense.status === 'CANCELLED'">
-                  Modifier
-                </button>
-                <button class="secondary-button" type="button" (click)="cancelExpense(expense.id)" [disabled]="expense.status === 'CANCELLED'">
-                  Annuler
-                </button>
+                @if (authorization.canManageExpenses() && expense.status === 'COMMITTED') {
+                  <button class="secondary-button" type="button" (click)="startEditExpense(expense)">Modifier</button>
+                  <button
+                    class="secondary-button"
+                    type="button"
+                    (click)="invoiceExpense(expense.id)"
+                    [disabled]="!expense.invoiceNumber"
+                    [title]="expense.invoiceNumber ? 'Marquer comme facturee' : 'Ajouter un numero de piece avant cette action'">
+                    Marquer facturee
+                  </button>
+                  <button class="secondary-button" type="button" (click)="payExpense(expense.id)">Marquer payee</button>
+                  <button class="secondary-button" type="button" (click)="cancelExpense(expense.id)">Annuler</button>
+                } @else if (authorization.canManageExpenses() && expense.status === 'INVOICED') {
+                  <button class="secondary-button" type="button" (click)="payExpense(expense.id)">Marquer payee</button>
+                  <button class="secondary-button" type="button" (click)="cancelExpense(expense.id)">Annuler</button>
+                } @else {
+                  <span class="muted-text">Aucune action</span>
+                }
               </td>
             </tr>
           }
         </tbody>
       </table>
+      </div>
     } @else {
       <p>Aucune depense pour le moment.</p>
     }
+
+    @if (authorization.canManageExpenses() && canUploadDocumentToSelectedExpense) {
+      <div class="document-upload-panel">
+        <div class="section-title-row">
+          <div>
+            <h3>Ajouter un justificatif</h3>
+            <p>{{ selectedDocumentExpenseLabel }}</p>
+          </div>
+          <button class="secondary-button" type="button" (click)="cancelDocumentUpload()">Annuler</button>
+        </div>
+        <form class="form-grid" (ngSubmit)="uploadExpenseDocument()">
+          <label>
+            Type de justificatif <span class="required-marker">*</span>
+            <select name="documentType" required [(ngModel)]="documentType">
+              <option value="INVOICE">Facture</option>
+              <option value="DELIVERY_NOTE">Bon de livraison</option>
+              <option value="OTHER">Autre document</option>
+            </select>
+          </label>
+          <label [class.invalid]="documentUploadAttempted && !documentFile">
+            Pièce jointe <span class="required-marker">*</span>
+            <input type="file" required accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" (change)="onDocumentFileSelected($event)" />
+            <small>PDF, PNG ou JPEG - 10 Mo maximum.</small>
+            @if (documentUploadAttempted && !documentFile) {
+              <span class="field-error">Veuillez selectionner une piece jointe.</span>
+            }
+          </label>
+          <div class="form-actions full-row">
+            <button type="submit">Enregistrer le justificatif</button>
+          </div>
+        </form>
+      </div>
+    }
   </section>
+  }
 }

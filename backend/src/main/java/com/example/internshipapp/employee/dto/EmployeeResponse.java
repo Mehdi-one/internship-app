@@ -8,7 +8,7 @@ import com.example.internshipapp.common.enums.EmployeeStatus;
 
 public record EmployeeResponse(
         Long id,
-        String registrationNumber,
+        String matricule,
         String fullName,
         String qualification,
         ContractType contractType,

@@ -1,31 +1,24 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { EmployeeRequest } from '../../models/business.models';
-import { ApiService } from '../../services/api.service';
+import { EmployeeFormComponent } from '../../components/employee-form/employee-form';
+import { EmployeeRequest } from '../../models/employee.model';
+import { EmployeeService } from '../../services/employee.service';
 
 @Component({
   selector: 'app-employee-edit',
-  imports: [FormsModule, RouterLink],
+  imports: [RouterLink, EmployeeFormComponent],
   templateUrl: './employee-edit.html',
 })
 export class EmployeeEditComponent implements OnInit {
-  private readonly apiService = inject(ApiService);
+  private readonly employeeService = inject(EmployeeService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   employeeId = 0;
+  employee: EmployeeRequest | null = null;
   message = '';
-  employee: EmployeeRequest = {
-    registrationNumber: '',
-    fullName: '',
-    qualification: '',
-    contractType: 'CDI',
-    hourlyCost: 0,
-    status: 'ACTIVE',
-  };
 
   ngOnInit() {
     this.employeeId = Number(this.route.snapshot.paramMap.get('id'));
@@ -33,12 +26,11 @@ export class EmployeeEditComponent implements OnInit {
   }
 
   loadEmployee() {
-    this.message = 'Chargement du salarie...';
-
-    this.apiService.getEmployee(this.employeeId).subscribe({
+    this.message = 'Chargement du salarié...';
+    this.employeeService.getEmployee(this.employeeId).subscribe({
       next: (employee) => {
         this.employee = {
-          registrationNumber: employee.registrationNumber,
+          matricule: employee.matricule,
           fullName: employee.fullName,
           qualification: employee.qualification,
           contractType: employee.contractType,
@@ -50,32 +42,19 @@ export class EmployeeEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Employee loading failed', error);
-        this.message = `Impossible de charger le salarie: ${error?.message || error?.statusText || 'erreur inconnue'}`;
+        this.message = `Impossible de charger le salarié : ${error?.error?.message || 'erreur inconnue'}`;
         this.changeDetectorRef.detectChanges();
       },
     });
   }
 
-  submit(form: NgForm) {
-    if (form.invalid) {
-      this.message = 'Veuillez remplir les champs obligatoires.';
-      return;
-    }
-
-    this.message = 'Enregistrement du salarie...';
-
-    this.apiService.updateEmployee(this.employeeId, {
-      ...this.employee,
-      hourlyCost: Number(this.employee.hourlyCost),
-    }).subscribe({
-      next: () => {
-        this.message = 'Salarie enregistre.';
-        this.changeDetectorRef.detectChanges();
-        this.router.navigate(['/employees']);
-      },
+  updateEmployee(request: EmployeeRequest) {
+    this.message = 'Enregistrement du salarié...';
+    this.employeeService.updateEmployee(this.employeeId, request).subscribe({
+      next: () => this.router.navigate(['/employees', this.employeeId]),
       error: (error) => {
         console.error('Employee update failed', error);
-        this.message = `Impossible denregistrer le salarie: ${error?.message || error?.statusText || 'erreur inconnue'}`;
+        this.message = `Impossible d'enregistrer le salarié : ${error?.error?.message || 'erreur inconnue'}`;
         this.changeDetectorRef.detectChanges();
       },
     });

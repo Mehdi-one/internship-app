@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Project, ProjectFilters, ProjectStatus } from '../../models/business.models';
 import { LabelFrPipe } from '../../pipes/label-fr.pipe';
 import { ApiService } from '../../services/api.service';
+import { AuthorizationService } from '../../services/authorization.service';
 
 @Component({
   selector: 'app-project-list',
@@ -14,6 +15,7 @@ import { ApiService } from '../../services/api.service';
 export class ProjectListComponent implements OnInit {
   private readonly apiService = inject(ApiService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  readonly authorization = inject(AuthorizationService);
 
   projects: Project[] = [];
   message = '';
@@ -21,7 +23,7 @@ export class ProjectListComponent implements OnInit {
     search: '',
     status: '',
   };
-  statuses: ProjectStatus[] = ['PROSPECT', 'IN_PROGRESS', 'SUSPENDED', 'DELIVERED', 'CLOSED'];
+  statuses: ProjectStatus[] = ['PROSPECT', 'IN_PROGRESS', 'SUSPENDED', 'RECEIVED', 'CLOSED'];
 
   ngOnInit() {
     this.loadProjects();

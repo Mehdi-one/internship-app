@@ -20,17 +20,22 @@
   </label>
 
   <label [class.invalid]="projectForm.submitted && title.invalid">
-    Titre <span class="required-marker">*</span>
+    Intitule / objet <span class="required-marker">*</span>
     <input #title="ngModel" name="title" required [(ngModel)]="project.title" />
     @if (projectForm.submitted && title.invalid) {
-      <span class="field-error">Le titre est obligatoire.</span>
+      <span class="field-error">L'intitule ou l'objet est obligatoire.</span>
     }
   </label>
 
-  <label>
+  <label [class.invalid]="projectForm.submitted && contractingAuthority.invalid">
     Maitre d'ouvrage <span class="required-marker">*</span>
-    <input #clientName="ngModel" name="clientName" required [(ngModel)]="project.clientName" />
-    @if (projectForm.submitted && clientName.invalid) {
+    <input #contractingAuthority="ngModel" name="contractingAuthority" list="contracting-authorities" required [(ngModel)]="project.contractingAuthority" />
+    <datalist id="contracting-authorities">
+      @for (authority of contractingAuthorities; track authority) {
+        <option [value]="authority"></option>
+      }
+    </datalist>
+    @if (projectForm.submitted && contractingAuthority.invalid) {
       <span class="field-error">Le maitre d'ouvrage est obligatoire.</span>
     }
   </label>
@@ -44,56 +49,56 @@
     </select>
   </label>
 
-  <label [class.invalid]="projectForm.submitted && amountHT.invalid">
-    Montant HT <span class="required-marker">*</span>
-    <input #amountHT="ngModel" name="amountHT" type="number" min="0.01" step="0.01" required [(ngModel)]="project.amountHT" />
-    @if (projectForm.submitted && amountHT.invalid) {
-      <span class="field-error">Le montant HT doit etre superieur a 0.</span>
+  <label [class.invalid]="projectForm.submitted && awardedAmountHT.invalid">
+    Montant adjuge HT (DHS) <span class="required-marker">*</span>
+    <input #awardedAmountHT="ngModel" name="awardedAmountHT" type="number" min="0.01" step="0.01" required [(ngModel)]="project.awardedAmountHT" />
+    @if (projectForm.submitted && awardedAmountHT.invalid) {
+      <span class="field-error">Le montant adjuge HT doit etre superieur a 0.</span>
     }
   </label>
 
   <label [class.invalid]="projectForm.submitted && tvaRate.invalid">
     Taux TVA <span class="required-marker">*</span>
     <select #tvaRate="ngModel" name="tvaRate" required [(ngModel)]="project.tvaRate">
-      <option value="0">0%</option>
-      <option value="7">7%</option>
-      <option value="10">10%</option>
-      <option value="14">14%</option>
-      <option value="20">20%</option>
+      <option [ngValue]="0">0%</option>
+      <option [ngValue]="7">7%</option>
+      <option [ngValue]="10">10%</option>
+      <option [ngValue]="14">14%</option>
+      <option [ngValue]="20">20%</option>
     </select>
     @if (projectForm.submitted && tvaRate.invalid) {
       <span class="field-error">Le taux TVA est obligatoire.</span>
     }
   </label>
 
-  <label [class.invalid]="projectForm.submitted && estimatedBudget.invalid">
-    Budget estime <span class="required-marker">*</span>
-    <input #estimatedBudget="ngModel" name="estimatedBudget" type="number" min="0.01" step="0.01" required [(ngModel)]="project.estimatedBudget" />
-    @if (projectForm.submitted && estimatedBudget.invalid) {
-      <span class="field-error">Le budget estime doit etre superieur a 0.</span>
+  <label [class.invalid]="projectForm.submitted && estimatedDryCost.invalid">
+    Budget previsionnel / debourse sec estime (DHS) <span class="required-marker">*</span>
+    <input #estimatedDryCost="ngModel" name="estimatedDryCost" type="number" min="0.01" step="0.01" required [(ngModel)]="project.estimatedDryCost" />
+    @if (projectForm.submitted && estimatedDryCost.invalid) {
+      <span class="field-error">Le debourse sec estime doit etre superieur a 0.</span>
     }
   </label>
 
   <label>
-    Date debut
-    <input name="startDate" type="date" [(ngModel)]="project.startDate" />
-  </label>
-
-  <label>
-    Date fin
-    <input name="endDate" type="date" [(ngModel)]="project.endDate" />
+    Date de notification / OS
+    <input name="notificationOrderDate" type="date" [(ngModel)]="project.notificationOrderDate" />
   </label>
 
   <label>
     Delai d'execution (jours)
-    <input name="executionDelayDays" type="number" min="1" [(ngModel)]="project.executionDelayDays" />
+    <input name="executionDelayDays" type="number" min="1" step="1" [(ngModel)]="project.executionDelayDays" />
   </label>
 
-  <label [class.invalid]="projectForm.submitted && responsibleName.invalid">
-    Responsable <span class="required-marker">*</span>
-    <input #responsibleName="ngModel" name="responsibleName" required [(ngModel)]="project.responsibleName" />
-    @if (projectForm.submitted && responsibleName.invalid) {
-      <span class="field-error">Le responsable est obligatoire.</span>
+  <label>
+    Date de fin previsionnelle
+    <input type="date" [value]="plannedEndDate" readonly />
+  </label>
+
+  <label [class.invalid]="projectForm.submitted && responsibleUserReference.invalid">
+    Responsable (conducteur) - reference utilisateur <span class="required-marker">*</span>
+    <input #responsibleUserReference="ngModel" name="responsibleUserReference" placeholder="Ex. identifiant Keycloak" required [(ngModel)]="project.responsibleUserReference" />
+    @if (projectForm.submitted && responsibleUserReference.invalid) {
+      <span class="field-error">La reference utilisateur du responsable est obligatoire.</span>
     }
   </label>
 
@@ -103,7 +108,7 @@
       <option value="PROSPECT">Prospect</option>
       <option value="IN_PROGRESS">En cours</option>
       <option value="SUSPENDED">Suspendu</option>
-      <option value="DELIVERED">Livre</option>
+      <option value="RECEIVED">Receptionne</option>
       <option value="CLOSED">Cloture</option>
     </select>
   </label>

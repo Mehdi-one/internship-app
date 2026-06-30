@@ -284,6 +284,20 @@ tbody tr:hover {
   background: #202121;
 }
 
+.inactive-row {
+  opacity: 0.58;
+}
+
+.inactive-row:hover {
+  opacity: 0.78;
+}
+
+.field-note {
+  color: #f5b21a;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .table-link {
   color: #69aeff;
   font-weight: 800;
@@ -314,7 +328,8 @@ tbody tr:hover {
 .status-active,
 .status-available,
 .status-paid,
-.status-delivered {
+.status-received,
+.status-validated {
   background: rgb(3 92 17 / 40%);
   color: #26d63d;
 }
@@ -325,7 +340,8 @@ tbody tr:hover {
 .status-committed,
 .status-maintenance,
 .status-suspended,
-.status-prospect {
+.status-prospect,
+.status-draft {
   background: rgb(107 64 0 / 62%);
   color: #f5b21a;
 }
@@ -342,6 +358,40 @@ tbody tr:hover {
   border-color: #3c3c3c;
   background: transparent;
   color: #8f8b84;
+}
+
+.warning-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid rgb(245 178 26 / 30%);
+  border-radius: 999px;
+  background: rgb(107 64 0 / 42%);
+  color: #f5b21a;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.alert-banner {
+  margin: 16px 22px 0;
+  padding: 13px 16px;
+  border: 1px solid;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.alert-warning {
+  border-color: rgb(245 178 26 / 34%);
+  background: rgb(107 64 0 / 34%);
+  color: #ffd26a;
+}
+
+.alert-danger {
+  border-color: rgb(239 68 68 / 36%);
+  background: rgb(105 18 18 / 42%);
+  color: #ff9a9a;
 }
 
 .form-grid,
@@ -368,6 +418,228 @@ label,
 .summary-grid div {
   display: grid;
   gap: 7px;
+}
+
+.financial-summary {
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-workspace-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-top: 22px;
+  overflow-x: auto;
+  border: 1px solid #343434;
+  border-radius: 8px;
+  background: #191a1a;
+  scrollbar-width: thin;
+}
+
+.project-workspace-tabs button {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 50px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #8f8b84;
+  font-weight: 700;
+}
+
+.project-workspace-tabs button:hover {
+  border-color: transparent;
+  border-bottom-color: #446d9e;
+  background: #202121;
+  color: #dbe9fb;
+}
+
+.project-workspace-tabs button.active {
+  border-bottom-color: #5b9bea;
+  background: #172438;
+  color: #69aeff;
+}
+
+.project-workspace-tabs button span {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #2a2b2b;
+  color: #b8b4ad;
+  font-size: 11px;
+}
+
+.project-workspace-tabs button.active span {
+  background: #254b7a;
+  color: #dcecff;
+}
+
+.pointage-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.financial-summary-header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #303030;
+}
+
+.financial-summary-header h2 {
+  margin: 0;
+}
+
+.margin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid rgb(37 214 75 / 28%);
+  border-radius: 999px;
+  background: rgb(3 92 17 / 34%);
+  color: #35dc50;
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.financial-primary-grid,
+.financial-cost-grid {
+  display: grid;
+  gap: 14px;
+  padding: 20px 22px 0;
+}
+
+.financial-primary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.financial-cost-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.financial-card {
+  display: grid;
+  min-width: 0;
+  min-height: 126px;
+  align-content: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border: 1px solid #3b3b3b;
+  border-radius: 8px;
+  background: #222323;
+}
+
+.financial-card span,
+.financial-secondary-grid span,
+.budget-progress-heading span,
+.budget-progress-meta {
+  color: #9a9790;
+}
+
+.financial-card strong {
+  color: #f7f7f4;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.financial-card-accent strong {
+  color: #69aeff;
+}
+
+.financial-card-compact {
+  min-height: 96px;
+  padding: 16px 18px;
+}
+
+.financial-card-compact strong {
+  font-size: 21px;
+}
+
+.financial-card-warning strong,
+.budget-progress-heading strong {
+  color: #f5b21a;
+}
+
+.budget-progress-card {
+  margin: 20px 22px 0;
+  padding: 20px 24px;
+  border: 1px solid #3b3b3b;
+  border-radius: 8px;
+  background: #222323;
+}
+
+.budget-progress-heading,
+.budget-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.budget-progress-heading strong {
+  font-size: 20px;
+}
+
+.budget-progress-track {
+  height: 10px;
+  margin: 16px 0 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #444545;
+}
+
+.budget-progress-track span {
+  display: block;
+  min-width: 4px;
+  height: 100%;
+  border-radius: inherit;
+  background: #26d63d;
+}
+
+.budget-progress-warning span {
+  background: #f5b21a;
+}
+
+.budget-progress-danger span {
+  background: #ef4444;
+}
+
+.financial-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 20px;
+  border-top: 1px solid #303030;
+  background: #303030;
+}
+
+.financial-secondary-grid > div {
+  display: grid;
+  gap: 6px;
+  padding: 18px 22px;
+  background: #191a1a;
+}
+
+.financial-secondary-grid strong {
+  color: #f4f4f2;
+  font-size: 18px;
+}
+
+.financial-secondary-grid small {
+  color: #77746e;
 }
 
 label,
@@ -482,10 +754,82 @@ dd {
   color: #9a9790;
 }
 
+.document-list {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.document-cell {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.document-action {
+  width: auto;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.document-upload-panel {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #303030;
+}
+
+.document-upload-panel .section-title-row {
+  margin-bottom: 16px;
+}
+
+.document-upload-panel h3,
+.document-upload-panel p {
+  margin: 0;
+}
+
+.document-upload-panel p {
+  margin-top: 4px;
+  color: #9a9790;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-scroll table {
+  min-width: 1100px;
+}
+
+.document-link {
+  width: auto;
+  padding: 0;
+  border: 0;
+  color: #68a7ff;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  text-align: left;
+}
+
+.document-link:hover {
+  color: #a8ccff;
+  background: transparent;
+}
+
 @media (max-width: 900px) {
   .dashboard-stats,
   .resource-grid {
     grid-template-columns: 1fr;
+  }
+
+  .financial-cost-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pointage-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -506,8 +850,34 @@ dd {
 
   .form-grid,
   .details-grid,
-  .summary-grid {
+  .summary-grid,
+  .pointage-form,
+  .financial-primary-grid,
+  .financial-cost-grid,
+  .financial-secondary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .financial-summary-header,
+  .budget-progress-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .margin-badge {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .financial-primary-grid,
+  .financial-cost-grid {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .budget-progress-card {
+    margin-right: 14px;
+    margin-left: 14px;
   }
 
   .table-panel,

@@ -9,6 +9,7 @@
     </div>
 
     <nav class="sidebar-nav" aria-label="Navigation principale">
+      @if (authorization.canViewDashboard()) {
       <a class="nav-primary" routerLink="/dashboard" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -19,6 +20,7 @@
         </span>
         Tableau de bord
       </a>
+      }
 
       <span class="nav-section">Marches</span>
       <a class="nav-primary" routerLink="/projects" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
@@ -30,6 +32,7 @@
         </span>
         Tous les marches
       </a>
+      @if (authorization.canManageProjects()) {
       <a class="nav-sub" routerLink="/projects/new" routerLinkActive="active-link">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -39,7 +42,18 @@
         </span>
         Nouveau marche
       </a>
+      }
+      <a class="nav-primary" routerLink="/expenses" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 3h12v18H6z" />
+            <path d="M9 7h6M9 11h6M9 15h3" />
+          </svg>
+        </span>
+        Depenses
+      </a>
 
+      @if (authorization.canViewResources()) {
       <span class="nav-section">Ressources</span>
       <a class="nav-primary" routerLink="/employees" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
         <span class="nav-icon" aria-hidden="true">
@@ -50,6 +64,7 @@
         </span>
         Salaries
       </a>
+      @if (authorization.canManageResources()) {
       <a class="nav-sub" routerLink="/employees/new" routerLinkActive="active-link">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -59,6 +74,7 @@
         </span>
         Nouveau salarie
       </a>
+      }
 
       <a class="nav-primary" routerLink="/equipment" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
         <span class="nav-icon" aria-hidden="true">
@@ -71,6 +87,7 @@
         </span>
         Materiel
       </a>
+      @if (authorization.canManageResources()) {
       <a class="nav-sub" routerLink="/equipment/new" routerLinkActive="active-link">
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -80,6 +97,8 @@
         </span>
         Nouveau materiel
       </a>
+      }
+      }
     </nav>
 
     <div class="sidebar-footer">
@@ -87,6 +106,9 @@
       <div>
         <span class="eyebrow">Utilisateur</span>
         <p>{{ isAuthenticated ? (userName || 'test') : 'Non connecte' }}</p>
+        @if (isAuthenticated) {
+          <span class="user-role">{{ authorization.primaryRoleLabel() }}</span>
+        }
       </div>
     </div>
   </aside>
@@ -97,7 +119,9 @@
 
       <div class="auth-strip">
         <span class="live-badge">En ligne</span>
-        <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+        @if (authorization.canManageProjects()) {
+          <a routerLink="/projects/new" class="button-link">Nouveau marche</a>
+        }
 
         @if (!isAuthenticated) {
           <button class="secondary-button" type="button" (click)="login()">Connexion</button>

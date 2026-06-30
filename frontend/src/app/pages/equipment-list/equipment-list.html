@@ -1,9 +1,11 @@
 <section class="page-header">
   <div>
     <h1>Parc auto / materiel</h1>
-    <p>Gerer les vehicules, engins, machines, outils et leurs couts d'utilisation.</p>
+    <p>Gerer les vehicules, engins, machines et outils appartenant a la societe.</p>
   </div>
-  <a routerLink="/equipment/new" class="button-link">Nouveau materiel</a>
+  @if (authorization.canManageResources()) {
+    <a routerLink="/equipment/new" class="button-link">Nouveau materiel</a>
+  }
 </section>
 
 @if (message) {
@@ -55,8 +57,9 @@
           <th>Reference</th>
           <th>Type</th>
           <th>Marque / modele</th>
-          <th>Cout d'utilisation</th>
-          <th>Consommation</th>
+          <th>Cout d'acquisition</th>
+          <th>Cout d'usage</th>
+          <th>Consommation estimee</th>
           <th>Maintenance</th>
           <th>Assurance</th>
           <th>Statut</th>
@@ -65,22 +68,35 @@
       </thead>
       <tbody>
         @for (item of equipment; track item.id) {
-          <tr>
-            <td>{{ item.reference }}</td>
+          <tr [class.inactive-row]="item.status === 'REFORMED'">
+            <td><a class="table-link" [routerLink]="['/equipment', item.id, 'edit']">{{ item.reference }}</a></td>
             <td>{{ item.type | labelFr }}</td>
             <td>{{ item.brandModel }}</td>
-            <td class="money">{{ item.usageCost }} DHS / {{ item.usageCostType | labelFr }}</td>
+            <td class="money">{{ item.acquisitionCost ?? '-' }} DHS</td>
+            <td class="money">{{ item.usageCost }} DHS/{{ item.usageCostType === 'DAILY' ? 'jour' : 'h' }}</td>
             <td class="money">{{ item.fuelConsumption ?? '-' }}</td>
-            <td class="money">{{ item.maintenanceCost ?? '-' }} DHS</td>
-            <td class="money">{{ item.insuranceCost ?? '-' }} DHS</td>
+            <td>
+              <span class="money">{{ item.maintenanceCost ?? '-' }} DHS</span>
+              @if (item.maintenanceDueSoon) {
+                <span class="warning-badge" [title]="'Maintenance prévue le ' + item.nextMaintenanceDate">⚠ {{ item.nextMaintenanceDate }}</span>
+              }
+            </td>
+            <td>
+              <span class="money">{{ item.insuranceCost ?? '-' }} DHS</span>
+              @if (item.insuranceExpiringSoon) {
+                <span class="warning-badge" [title]="'Assurance expire le ' + item.insuranceExpiryDate">⚠ {{ item.insuranceExpiryDate }}</span>
+              }
+            </td>
             <td><span class="status-badge status-{{ item.status.toLowerCase() }}">{{ item.status | labelFr }}</span></td>
             <td>
+              @if (authorization.canManageResources()) {
               <div class="form-actions">
                 <a [routerLink]="['/equipment', item.id, 'edit']" class="button-link secondary">Modifier</a>
                 <button class="secondary-button" type="button" (click)="reformEquipment(item.id)" [disabled]="item.status === 'REFORMED'">
                   Reformer
                 </button>
               </div>
+              }
             </td>
           </tr>
         }
@@ -91,6 +107,8 @@
   <section class="empty-state">
     <h2>Aucun materiel trouve</h2>
     <p>Creer le premier materiel ou modifier les filtres.</p>
-    <a routerLink="/equipment/new" class="button-link">Creer un materiel</a>
+    @if (authorization.canManageResources()) {
+      <a routerLink="/equipment/new" class="button-link">Creer un materiel</a>
+    }
   </section>
 }

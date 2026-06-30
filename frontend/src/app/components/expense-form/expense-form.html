@@ -1,5 +1,10 @@
 <form #expenseForm="ngForm" class="form-grid" novalidate (ngSubmit)="submit(expenseForm)">
   <label>
+    Marché
+    <input [value]="projectLabel" readonly />
+  </label>
+
+  <label>
     Lot / poste
     <select name="projectLotId" [(ngModel)]="expense.projectLotId">
       <option value="">Sans lot/poste</option>
@@ -10,15 +15,29 @@
   </label>
 
   <label>
-    Categorie <span class="required-marker">*</span>
-    <select name="category" required [(ngModel)]="expense.category">
-      <option value="MATERIALS">Materiaux</option>
+    Catégorie <span class="required-marker">*</span>
+    <select name="category" required [(ngModel)]="expense.category" (ngModelChange)="onCategoryChange()">
+      <option value="MATERIALS">Matériaux</option>
+      <option value="EQUIPMENT">Matériel</option>
+      <option value="EMPLOYEES">Salariés</option>
+      <option value="COMPANY_STAFF">Staff de la société</option>
       <option value="SUBCONTRACTING">Sous-traitance</option>
-      <option value="EXTERNAL_RENTAL">Location externe</option>
       <option value="SITE_FEES">Frais de chantier</option>
-      <option value="GENERAL_FEES">Frais generaux</option>
+      <option value="GENERAL_FEES">Frais généraux</option>
       <option value="OTHER">Autre</option>
     </select>
+  </label>
+
+  <label [class.invalid]="expenseForm.submitted && expenseType.invalid">
+    Type de dépense <span class="required-marker">*</span>
+    <select #expenseType="ngModel" name="expenseType" required [(ngModel)]="expense.expenseType">
+      @for (option of availableExpenseTypes; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+    @if (expenseForm.submitted && expenseType.invalid) {
+      <span class="field-error">Le type de dépense est obligatoire.</span>
+    }
   </label>
 
   <label [class.invalid]="expenseForm.submitted && amountHT.invalid">
@@ -30,7 +49,7 @@
   </label>
 
   <label [class.invalid]="expenseForm.submitted && tvaRate.invalid">
-    Taux TVA <span class="required-marker">*</span>
+    TVA <span class="required-marker">*</span>
     <select #tvaRate="ngModel" name="tvaRate" required [(ngModel)]="expense.tvaRate">
       <option value="0">0%</option>
       <option value="7">7%</option>
@@ -49,28 +68,52 @@
   </label>
 
   <label>
-    Numero de facture
+    N° pièce
     <input name="invoiceNumber" [(ngModel)]="expense.invoiceNumber" />
   </label>
 
-  <label>
-    Date de depense
-    <input name="expenseDate" type="date" [(ngModel)]="expense.expenseDate" />
+  <label [class.invalid]="(expenseForm.submitted && expenseDate.invalid) || isExpenseDateOutsideProject">
+    Date <span class="required-marker">*</span>
+    <input
+      #expenseDate="ngModel"
+      name="expenseDate"
+      type="date"
+      required
+      [attr.min]="projectStartDate || null"
+      [attr.max]="projectEndDate || null"
+      [(ngModel)]="expense.expenseDate" />
+    @if (expenseForm.submitted && expenseDate.invalid) {
+      <span class="field-error">La date de depense est obligatoire.</span>
+    }
+    @if (isExpenseDateOutsideProject) {
+      <span class="field-error">La date doit etre dans la periode du marche.</span>
+    }
   </label>
 
   <label>
-    Statut <span class="required-marker">*</span>
-    <select name="status" required [(ngModel)]="expense.status">
-      <option value="COMMITTED">Engagee</option>
-      <option value="INVOICED">Facturee</option>
-      <option value="PAID">Payee</option>
-      <option value="CANCELLED">Annulee</option>
-    </select>
+    État
+    <input value="Engagée" readonly />
+    <small>L'état évolue automatiquement : engagée, facturée, payée ou annulée.</small>
   </label>
 
   <label class="full-row">
     Description
     <textarea name="description" rows="3" [(ngModel)]="expense.description"></textarea>
+  </label>
+
+  <label>
+    Type de justificatif
+    <select name="documentType" [(ngModel)]="documentType">
+      <option value="INVOICE">Facture</option>
+      <option value="DELIVERY_NOTE">Bon de livraison</option>
+      <option value="OTHER">Autre document</option>
+    </select>
+  </label>
+
+  <label>
+    Pièce jointe
+    <input type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" (change)="onFileSelected($event)" />
+    <small>PDF, PNG ou JPEG - 10 Mo maximum.</small>
   </label>
 
   <div class="form-actions full-row">

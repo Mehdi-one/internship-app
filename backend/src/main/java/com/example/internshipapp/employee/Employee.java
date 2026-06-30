@@ -25,8 +25,8 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String registrationNumber;
+    @Column(name = "registration_number", nullable = false, unique = true)
+    private String matricule;
 
     @Column(nullable = false)
     private String fullName;
@@ -57,10 +57,6 @@ public class Employee {
         createdAt = now;
         updatedAt = now;
 
-        if (contractType == null) {
-            contractType = ContractType.OTHER;
-        }
-
         if (status == null) {
             status = EmployeeStatus.ACTIVE;
         }
@@ -75,12 +71,12 @@ public class Employee {
         return id;
     }
 
-    public String getRegistrationNumber() {
-        return registrationNumber;
+    public String getMatricule() {
+        return matricule;
     }
 
-    public void setRegistrationNumber(String registrationNumber) {
-        this.registrationNumber = registrationNumber;
+    public void setMatricule(String matricule) {
+        this.matricule = matricule;
     }
 
     public String getFullName() {

@@ -1,0 +1,65 @@
+<form #employeeForm="ngForm" class="panel form-grid" novalidate (ngSubmit)="submit(employeeForm)">
+  <label [class.invalid]="employeeForm.submitted && matricule.invalid">
+    Matricule <span class="required-marker">*</span>
+    <input #matricule="ngModel" name="matricule" required [(ngModel)]="employee.matricule" />
+    @if (employeeForm.submitted && matricule.invalid) {
+      <span class="field-error">Le matricule est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && fullName.invalid">
+    Nom complet <span class="required-marker">*</span>
+    <input #fullName="ngModel" name="fullName" required [(ngModel)]="employee.fullName" />
+    @if (employeeForm.submitted && fullName.invalid) {
+      <span class="field-error">Le nom complet est obligatoire.</span>
+    }
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && qualification.invalid">
+    Fonction / qualification <span class="required-marker">*</span>
+    <input #qualification="ngModel" name="qualification" required [(ngModel)]="employee.qualification" />
+    @if (employeeForm.submitted && qualification.invalid) {
+      <span class="field-error">La fonction ou qualification est obligatoire.</span>
+    }
+  </label>
+
+  <label>
+    Type de contrat <span class="required-marker">*</span>
+    <select name="contractType" required [(ngModel)]="employee.contractType">
+      <option value="CDI">CDI</option>
+      <option value="CDD">CDD</option>
+      <option value="INTERIMAIRE">Intérimaire</option>
+      <option value="SOUS_TRAITANT">Sous-traitant</option>
+    </select>
+  </label>
+
+  <label [class.invalid]="employeeForm.submitted && hourlyCost.invalid">
+    Coût horaire chargé <span class="required-marker">*</span>
+    <input
+      #hourlyCost="ngModel"
+      name="hourlyCost"
+      type="number"
+      min="0.01"
+      step="0.01"
+      required
+      [(ngModel)]="employee.hourlyCost" />
+    @if (employeeForm.submitted && hourlyCost.invalid) {
+      <span class="field-error">Le coût horaire chargé doit être supérieur à 0.</span>
+    }
+    @if (hourlyCostChanged) {
+      <span class="field-note">Une nouvelle entrée d'historique sera créée à la date d'aujourd'hui.</span>
+    }
+  </label>
+
+  <label>
+    Statut <span class="required-marker">*</span>
+    <select name="status" required [(ngModel)]="employee.status">
+      <option value="ACTIVE">Actif</option>
+      <option value="INACTIVE">Inactif</option>
+    </select>
+  </label>
+
+  <div class="form-actions full-row">
+    <button type="submit">{{ submitLabel }}</button>
+  </div>
+</form>

@@ -19,13 +19,13 @@
   <article class="stat-card">
     <span>Budget total</span>
     <strong>{{ formatMoney(totalBudget) }} DHS</strong>
-    <p>Budget estime HT</p>
+    <p>Debourse sec estime</p>
   </article>
 
   <article class="stat-card stat-warning">
-    <span>Depenses</span>
+    <span>Debourse total</span>
     <strong>{{ formatMoney(totalExpenses) }} DHS</strong>
-    <p>Depenses non annulees</p>
+    <p>Depenses + pointages valides</p>
   </article>
 
   <article class="stat-card stat-success">
@@ -55,8 +55,8 @@
       <thead>
         <tr>
           <th>Reference</th>
-          <th>Titre</th>
-          <th>Client</th>
+          <th>Intitule / objet</th>
+          <th>Maitre d'ouvrage</th>
           <th>Type</th>
           <th>Budget</th>
           <th>Statut</th>
@@ -68,9 +68,9 @@
           <tr>
             <td><a class="table-link" [routerLink]="['/projects', project.id]">{{ project.reference }}</a></td>
             <td>{{ project.title }}</td>
-            <td>{{ project.clientName || '-' }}</td>
+            <td>{{ project.contractingAuthority }}</td>
             <td>{{ project.projectType | labelFr }}</td>
-            <td class="money">{{ formatMoney(project.estimatedBudget) }} DHS</td>
+            <td class="money">{{ formatMoney(project.estimatedDryCost) }} DHS</td>
             <td><span class="status-badge status-{{ project.status.toLowerCase().replace('_', '-') }}">{{ project.status | labelFr }}</span></td>
             <td><span class="status-badge status-{{ project.archived ? 'archived' : 'active' }}">{{ project.archived ? 'Archive' : 'Non archive' }}</span></td>
           </tr>
@@ -127,7 +127,6 @@
               <strong>{{ item.reference }}</strong>
               <p>{{ item.type | labelFr }} - {{ item.brandModel }}</p>
             </div>
-            <span class="money">{{ item.usageCost }} DHS/{{ item.usageCostType === 'DAILY' ? 'jour' : 'h' }}</span>
             <span class="status-badge status-{{ item.status.toLowerCase() }}">{{ item.status | labelFr }}</span>
           </article>
         }

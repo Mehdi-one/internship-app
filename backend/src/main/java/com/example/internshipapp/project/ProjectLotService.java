@@ -1,5 +1,6 @@
 package com.example.internshipapp.project;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -58,7 +59,15 @@ public class ProjectLotService {
         lot.setDesignation(request.designation());
         lot.setQuantity(request.quantity());
         lot.setUnitPrice(request.unitPrice());
-        lot.setPlannedAmount(request.plannedAmount());
+        lot.setPlannedAmount(calculatePlannedAmount(request));
+    }
+
+    private BigDecimal calculatePlannedAmount(ProjectLotRequest request) {
+        if (request.quantity() != null && request.unitPrice() != null) {
+            return request.quantity().multiply(request.unitPrice());
+        }
+
+        return request.plannedAmount() == null ? BigDecimal.ZERO : request.plannedAmount();
     }
 
     private ProjectLotResponse toResponse(ProjectLot lot) {

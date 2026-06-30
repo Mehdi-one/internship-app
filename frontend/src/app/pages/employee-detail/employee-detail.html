@@ -1,0 +1,67 @@
+<section class="page-header">
+  <div>
+    <h1>{{ employee?.fullName || 'Détail du salarié' }}</h1>
+    <p>{{ employee?.qualification || 'Informations et historique du coût horaire chargé.' }}</p>
+  </div>
+  <div class="form-actions">
+    <a routerLink="/employees" class="button-link secondary">Retour</a>
+    @if (employee && authorization.canManageResources()) {
+      <a [routerLink]="['/employees', employee.id, 'edit']" class="button-link">Modifier</a>
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="employee.status === 'INACTIVE'"
+        (click)="deactivateEmployee()">
+        Désactiver
+      </button>
+    }
+  </div>
+</section>
+
+@if (message) {
+  <p class="notice">{{ message }}</p>
+}
+
+@if (employee) {
+  <section class="panel details-grid">
+    <div><strong>Matricule</strong><span>{{ employee.matricule }}</span></div>
+    <div><strong>Nom complet</strong><span>{{ employee.fullName }}</span></div>
+    <div><strong>Fonction / qualification</strong><span>{{ employee.qualification }}</span></div>
+    <div><strong>Type de contrat</strong><span>{{ employee.contractType | labelFr }}</span></div>
+    <div><strong>Coût horaire chargé actuel</strong><span>{{ employee.hourlyCost }} DHS/h</span></div>
+    <div>
+      <strong>Statut</strong>
+      <span class="status-badge status-{{ employee.status.toLowerCase() }}">{{ employee.status | labelFr }}</span>
+    </div>
+  </section>
+
+  <section class="table-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Historique du coût horaire</h2>
+        <p>Coûts applicables aux pointages selon leur date d'effet.</p>
+      </div>
+    </div>
+
+    @if (employee.costHistory.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Date d'effet</th>
+            <th>Coût horaire chargé</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cost of employee.costHistory; track cost.id) {
+            <tr>
+              <td>{{ cost.effectiveDate }}</td>
+              <td class="money">{{ cost.hourlyCost }} DHS/h</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="empty-inline">Aucun historique disponible.</p>
+    }
+  </section>
+}

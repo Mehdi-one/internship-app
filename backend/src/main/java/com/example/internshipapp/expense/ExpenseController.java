@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.internshipapp.expense.dto.ExpenseRequest;
 import com.example.internshipapp.expense.dto.ExpenseResponse;
+import com.example.internshipapp.common.enums.ExpenseCategory;
+import com.example.internshipapp.common.enums.ExpenseStatus;
 
 import jakarta.validation.Valid;
 
@@ -36,6 +39,14 @@ public class ExpenseController {
         return expenseService.findByProject(projectId);
     }
 
+    @GetMapping("/expenses")
+    public List<ExpenseResponse> findAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) ExpenseCategory category,
+            @RequestParam(required = false) ExpenseStatus status) {
+        return expenseService.findAll(search, category, status);
+    }
+
     @GetMapping("/expenses/{id}")
     public ExpenseResponse findById(@PathVariable Long id) {
         return expenseService.findById(id);
@@ -44,6 +55,16 @@ public class ExpenseController {
     @PutMapping("/expenses/{id}")
     public ExpenseResponse update(@PathVariable Long id, @Valid @RequestBody ExpenseRequest request) {
         return expenseService.update(id, request);
+    }
+
+    @PatchMapping("/expenses/{id}/invoice")
+    public ExpenseResponse markAsInvoiced(@PathVariable Long id) {
+        return expenseService.markAsInvoiced(id);
+    }
+
+    @PatchMapping("/expenses/{id}/pay")
+    public ExpenseResponse markAsPaid(@PathVariable Long id) {
+        return expenseService.markAsPaid(id);
     }
 
     @PatchMapping("/expenses/{id}/cancel")
